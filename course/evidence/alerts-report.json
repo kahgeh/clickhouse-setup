@@ -1,0 +1,143 @@
+{
+  "run_id": "alerts-195117",
+  "passed": 11,
+  "failed": 0,
+  "e2e_visible_after_s": null,
+  "checks": [
+    {
+      "id": "AL0",
+      "desc": "baseline: both alerts reach state OK",
+      "expected": {
+        "Alert: 5xx errors above 4 per minute (dashboard tile)": "OK",
+        "Alert: ERROR logs above 4 per minute (saved search)": "OK"
+      },
+      "actual": {
+        "Alert: 5xx errors above 4 per minute (dashboard tile)": "OK",
+        "Alert: ERROR logs above 4 per minute (saved search)": "OK"
+      },
+      "ok": true
+    },
+    {
+      "id": "AL1a",
+      "desc": "healthy traffic: both alerts remain OK",
+      "expected": {
+        "Alert: 5xx errors above 4 per minute (dashboard tile)": "OK",
+        "Alert: ERROR logs above 4 per minute (saved search)": "OK"
+      },
+      "actual": {
+        "Alert: 5xx errors above 4 per minute (dashboard tile)": "OK",
+        "Alert: ERROR logs above 4 per minute (saved search)": "OK"
+      },
+      "ok": true
+    },
+    {
+      "id": "AL1b",
+      "desc": "healthy traffic: no webhook delivered",
+      "expected": 0,
+      "actual": 0,
+      "ok": true
+    },
+    {
+      "id": "AL1c",
+      "desc": "exactly 4 failures (== threshold, not more): both alerts stay OK",
+      "expected": {
+        "Alert: 5xx errors above 4 per minute (dashboard tile)": "OK",
+        "Alert: ERROR logs above 4 per minute (saved search)": "OK"
+      },
+      "actual": {
+        "Alert: 5xx errors above 4 per minute (dashboard tile)": "OK",
+        "Alert: ERROR logs above 4 per minute (saved search)": "OK"
+      },
+      "ok": true
+    },
+    {
+      "id": "AL1d",
+      "desc": "exactly 4 failures: no webhook delivered",
+      "expected": 0,
+      "actual": 0,
+      "ok": true
+    },
+    {
+      "id": "AL2a",
+      "desc": "failure burst: both alerts reach state ALERT",
+      "expected": {
+        "Alert: 5xx errors above 4 per minute (dashboard tile)": "ALERT",
+        "Alert: ERROR logs above 4 per minute (saved search)": "ALERT"
+      },
+      "actual": {
+        "Alert: 5xx errors above 4 per minute (dashboard tile)": "ALERT",
+        "Alert: ERROR logs above 4 per minute (saved search)": "ALERT"
+      },
+      "ok": true
+    },
+    {
+      "id": "AL2b",
+      "desc": "failure burst: a firing (ALERT) webhook delivery arrived for each alert",
+      "expected": {
+        "Alert: 5xx errors above 4 per minute (dashboard tile)": ">= 1",
+        "Alert: ERROR logs above 4 per minute (saved search)": ">= 1"
+      },
+      "actual": {
+        "Alert: 5xx errors above 4 per minute (dashboard tile)": 1,
+        "Alert: ERROR logs above 4 per minute (saved search)": 1
+      },
+      "ok": true
+    },
+    {
+      "id": "AL2c",
+      "desc": "the value in each firing notification is above the threshold and no larger than what was sent (equal when the burst fits one 1-minute window)",
+      "expected": {
+        "Alert: 5xx errors above 4 per minute (dashboard tile)": "4 < n <= 60",
+        "Alert: ERROR logs above 4 per minute (saved search)": "4 < n <= 70"
+      },
+      "actual": {
+        "Alert: 5xx errors above 4 per minute (dashboard tile)": [
+          60
+        ],
+        "Alert: ERROR logs above 4 per minute (saved search)": [
+          70
+        ]
+      },
+      "ok": true
+    },
+    {
+      "id": "AL2d",
+      "desc": "the counts in the firing notifications add up to exactly what was sent",
+      "expected": {
+        "Alert: 5xx errors above 4 per minute (dashboard tile)": 60,
+        "Alert: ERROR logs above 4 per minute (saved search)": 70
+      },
+      "actual": {
+        "Alert: 5xx errors above 4 per minute (dashboard tile)": 60,
+        "Alert: ERROR logs above 4 per minute (saved search)": 70
+      },
+      "ok": true
+    },
+    {
+      "id": "AL3a",
+      "desc": "after the failures stop: both alerts return to OK",
+      "expected": {
+        "Alert: 5xx errors above 4 per minute (dashboard tile)": "OK",
+        "Alert: ERROR logs above 4 per minute (saved search)": "OK"
+      },
+      "actual": {
+        "Alert: 5xx errors above 4 per minute (dashboard tile)": "OK",
+        "Alert: ERROR logs above 4 per minute (saved search)": "OK"
+      },
+      "ok": true
+    },
+    {
+      "id": "AL3b",
+      "desc": "a resolve (OK) webhook delivery arrived for each alert",
+      "expected": {
+        "Alert: 5xx errors above 4 per minute (dashboard tile)": ">= 1",
+        "Alert: ERROR logs above 4 per minute (saved search)": ">= 1"
+      },
+      "actual": {
+        "Alert: 5xx errors above 4 per minute (dashboard tile)": 1,
+        "Alert: ERROR logs above 4 per minute (saved search)": 1
+      },
+      "ok": true
+    }
+  ]
+}

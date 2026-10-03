@@ -1,0 +1,63 @@
+Region ap-southeast-2 (Asia Pacific (Sydney)); AWS price lists published: S3 2026-09-28, EC2 2026-09-25, MSK 2026-09-11
+Workload: logs 1.59 TB / 2.78 B events per month (1,073 ev/s, 569 B each); metrics 20 B samples/month (7.6k/s, 485k series)
+
+Monthly cost (USD, on-demand)                        low      base      high
+S3 PUT requests                                      $11       $21      $107
+S3 GET requests (incl. manifest polling)              $3        $4       $16
+S3 transient storage                                  $6        $6        $6
+ClickHouse EBS storage (gp3)                         $60      $179      $313
+ClickHouse compute                                  $174      $348      $348
+ClickHouse Keeper x3                                  $0      $192      $192
+Collectors                                          $192      $192      $192
+Ingestors                                           $128      $128      $128
+HyperDX + MongoDB                                    $69       $69       $69
+TOTAL                                               $642    $1,139    $1,370
+  per TB of raw logs ingested                       $404      $716      $862
+
+Scenario assumptions:
+  low   log ClickHouse ratio 10x, metric 10 B/sample, collector flush 10 s, ingestor poll 1.0 s, ClickHouse HA False
+  base  log ClickHouse ratio 7x, metric 16 B/sample, collector flush 5 s, ingestor poll 1.0 s, ClickHouse HA True
+  high  log ClickHouse ratio 4x, metric 28 B/sample, collector flush 1 s, ingestor poll 0.25 s, ClickHouse HA True
+
+Base detail: 3.9 M S3 PUTs and 8.3 M GETs per month; ClickHouse holds ~716 GB (before headroom/replicas); Buffer carries ~761 GB/month (transient).
+
+Sensitivity: collector flush interval vs S3 request cost (base scenario otherwise)
+    flush      PUTs/month   S3 requests $     added latency (~)
+     0.1s         194.4 M          $1,140                ~0.1 s
+     0.5s          38.9 M            $230                ~0.5 s
+       1s          19.4 M            $116                  ~1 s
+       5s           3.9 M             $25                  ~5 s
+      10s           1.9 M             $14                 ~10 s
+      30s           0.6 M              $6                 ~30 s
+  (our local stack uses 0.1 s for low latency; at this workload that setting is the single biggest S3 cost lever)
+
+Buffer alternative: Kafka (MSK) instead of the S3 Buffer, base scenario
+  MSK brokers (3 x kafka.m7g.large)             $551
+  MSK storage (gp2)                              $27
+  MSK subtotal                                  $578   vs S3 Buffer subtotal $31 (difference $547/month)
+
+Alternative: ClickStack on ClickHouse Cloud (managed ClickHouse + HyperDX UI), base data volume
+  prices [https://clickhouse.com/pricing (Enterprise, ap-southeast-2)]: $0.49046/unit-hour (8 GiB RAM + 2 vCPU), $27.5/TB-month
+  ClickHouse Cloud sizing              compute   storage  collectors   A: direct  B: +Buffer
+  small: 2 replicas x 16 GiB            $1,413       $39        $192      $1,644      $1,803
+  base: 2 replicas x 32 GiB             $2,825       $39        $192      $3,056      $3,215
+  large: 2 replicas x 64 GiB            $5,650       $39        $192      $5,881      $6,040
+  Cloud sizing is a JUDGEMENT (no load test). Removes our ClickHouse, Keeper, HyperDX and MongoDB operations; collectors stay self-managed.
+
+Query sizing: vCPUs needed for log searches at scan volumes (your figure); prune=50%, peak x5
+  ClickHouse node in the base estimate has 4 vCPU per replica; extra vCPU priced at $0.060/vCPU-hour (r6g)
+   scanned TB/mo  avg GB/s              fast (indexed / prefix                             typical              slow (substring on Bod
+           2,384      0.46         1 vCPU peak, +    $50         5 vCPU peak, +   $200        23 vCPU peak, + $1,000
+  (peak vCPU needed to serve the load; compare with the 4-8 vCPU already in the base estimate. Throughput per vCPU is an ASSUMPTION.)
+
+Notes and limits (read before quoting any number):
+* On-demand prices only: Savings Plans / reserved instances typically cut compute substantially. Not modelled.
+* Compression ratios and metric bytes-per-sample are ASSUMPTIONS. The local measurements (33 B/log, ~9 B/sample) come from
+  synthetic, highly repetitive data and must not be used. Replace them by a measurement on a sample of your real data.
+* "Stored 2.77 TB" is read as raw-equivalent log volume retained (about 52 days at 1.59 TB/month). If it is the vendor's
+  stored size, retention and compression change.
+* Traces are excluded (no volume given). Engineer/on-call time, data transfer between AZs, backups, support and HyperDX
+  licensing/SSO needs are excluded. People cost is usually larger than infrastructure cost at this scale.
+* The comparison with your current vendor needs your actual monthly bill; add it and the saving (or loss) follows.
+* The platform proved correctness and resilience on a laptop. Throughput at 1k events/s plus 7.6k samples/s has NOT been
+  load-tested here; ClickHouse sizing is a judgement, not a measurement.

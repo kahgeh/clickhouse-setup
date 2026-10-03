@@ -1,0 +1,219 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Finding your data</title>
+<link rel="stylesheet" href="../assets/tokens.css">
+<link rel="stylesheet" href="../assets/theme.css">
+<link rel="stylesheet" href="../assets/components.css">
+<link rel="stylesheet" href="../assets/local.css">
+</head>
+<body data-module="m05">
+<nav class="site-bar" aria-label="Course"><a class="brand" href="../index.html">Observability course</a></nav>
+<main>
+  <header>
+    <p class="crumbs">Using it · module 2 of 3</p>
+    <h1>Finding your data</h1>
+    <p class="lede">How to read the availability and latency dashboard, find failed requests and their logs, and follow one test run, with the exact definition behind every number.</p>
+  </header>
+
+  <section class="goals" aria-labelledby="goals">
+    <h2 id="goals">After this module you can</h2>
+    <ul>
+      <li>read the availability and latency dashboard and say how each number is defined,</li>
+      <li>find the failed requests and the log lines that belong to them, and</li>
+      <li>use the runlog to follow one test run.</li>
+    </ul>
+  </section>
+
+  <section aria-labelledby="dash">
+    <h2 id="dash">The availability and latency dashboard</h2>
+    <p>This module explains how to read the dashboards, the error list and the runlog in HyperDX, and how the numbers on them are defined. The dashboard <em>Availability &amp; Latency</em> has 13 tiles. It is created from code, so the definitions below are the ones the screen uses.</p>
+    <figure class="shot">
+      <img src="../evidence/screens/dash-availability.png" alt="HyperDX dashboard named Availability and Latency with number tiles for availability, requests, errors and p95 latency, line charts over time, a per-route table and error lists">
+      <figcaption>The Availability &amp; Latency dashboard in HyperDX, captured from the live stack on 2026-10-03T14:21:12Z. The data comes from verification runs whose request mix deliberately includes failing requests (15.6% of the requests in the captured run), so availability is well below 100%. The window of this screenshot also holds self-test runs that delete or alter rows on purpose, which is why <code>/ok</code> shows a few errors (see module 3).</figcaption>
+    </figure>
+    <table class="data">
+      <thead><tr><th scope="col">Tile</th><th scope="col">Kind</th><th scope="col">What it computes</th></tr></thead>
+      <tbody>
+<tr><td>Availability (non-5xx / total)</td><td>Number</td><td>Server spans of <code>web</code> without error status, divided by all server spans of <code>web</code>.</td></tr>
+<tr><td>Requests</td><td>Number</td><td>Count of server spans of <code>web</code>.</td></tr>
+<tr><td>Errors (5xx)</td><td>Number</td><td>Count of those server spans with error status. The first alert watches this tile.</td></tr>
+<tr><td>p95 latency (ms)</td><td>Number</td><td>95th percentile of span <code>Duration</code> over the same spans, in milliseconds.</td></tr>
+<tr><td>Availability over time</td><td>Line</td><td>The availability formula per time bucket. A bucket with no traffic is left empty, not drawn as 0%.</td></tr>
+<tr><td>Latency p50 / p95 / p99 (ms)</td><td>Line</td><td>Three percentiles of <code>Duration</code> per time bucket.</td></tr>
+<tr><td>Request rate by route</td><td>Line</td><td>Count of server spans per time bucket, one line per <code>SpanName</code>.</td></tr>
+<tr><td>p95 latency by route (ms)</td><td>Line</td><td>The 95th percentile per time bucket, one line per <code>SpanName</code>.</td></tr>
+<tr><td>Per-route SLI</td><td>Table</td><td>Per <code>SpanName</code>: requests, errors, p95 in milliseconds, and availability as (requests minus errors) divided by requests.</td></tr>
+<tr><td>Error list: failed spans</td><td>Search</td><td>Spans with <code>StatusCode</code> Error: timestamp, service, span name, status message, trace id.</td></tr>
+<tr><td>Error list: error logs</td><td>Search</td><td>Log lines with severity ERROR: timestamp, service, body, trace id.</td></tr>
+<tr><td>app.requests by outcome</td><td>Line</td><td>The metric counter summed by <code>outcome</code>. HyperDX drops each cumulative series' first point, so this tile undercounts, and the span tiles are the reference.</td></tr>
+<tr><td>In-flight requests</td><td>Line</td><td>The up-down counter <code>http.server.active_requests</code>.</td></tr>
+      </tbody>
+    </table>
+    <p class="tag">Source: tile definitions in <code>stack/hyperdx/provision.py</code>.</p>
+  </section>
+
+  <section aria-labelledby="defs">
+    <h2 id="defs">How availability, rate and percentiles are defined</h2>
+    <p>Every number on the first nine tiles comes from one set of spans: the <dfn>server spans</dfn> of the <code>web</code> service, which is one span per request that <code>web</code> received. In the table this is <code>SpanKind = Server</code> and <code>ServiceName = web</code>. The backend's server spans and the client span are not counted, so a request through <code>/chain</code> counts once.</p>
+    <ul>
+      <li><strong>Request rate</strong> is the count of those spans in a time bucket.</li>
+      <li><strong>Error</strong> means the span has error status. The test app sets that status when the response is HTTP 5xx, so <code>/error</code> (500), <code>/exception</code> (500) and <code>/chain-fail</code> (502) are errors and <code>/ok</code>, <code>/slow</code>, <code>/chain</code> and <code>/checkout</code> (200) are not.</li>
+      <li><strong>Availability</strong> is the count of spans without error status divided by the count of all those spans.</li>
+      <li><strong>Latency</strong> percentiles p50, p95 and p99 are computed from the span <code>Duration</code>, which is stored in nanoseconds. The dashboard divides it by 1,000,000 and shows milliseconds.</li>
+    </ul>
+    <p>A <code>/slow</code> request that takes longer than expected is still available. Availability here counts failures, and latency is a separate tile.</p>
+  </section>
+
+  <section aria-labelledby="calc">
+    <h2 id="calc">SLI calculator</h2>
+    <p>Set the number of requests of each type and the duration of each type. The calculator applies the definitions above. The defaults are the request counts of the captured verification run, from <code>evidence/ground-truth.json</code>.</p>
+    <aside class="caveat"><p><strong>The durations are illustrative.</strong> The evidence does not contain a latency per route. The defaults are made-up round numbers, except that 200 ms for <code>/slow</code> matches the <code>--slow-ms 200</code> in the README's example load command. The percentile is the <dfn>nearest rank</dfn>: sort all N durations ascending and take the value at position ceil(p/100 x N). HyperDX computes its percentiles in ClickHouse, so its values can differ slightly from this definition.</p></aside>
+    <div class="sim" id="sli-sim" data-expected-availability="0.8444444444444444" data-expected-total="225">
+      <h3>Availability and percentiles from counts</h3>
+      <div class="controls">
+        <label class="ctl">Request mix
+          <select id="sli-preset"><option value="captured" selected>The captured run</option><option value="healthy">Healthy traffic, no failures</option><option value="dependency">A failing dependency: every chain request fails</option><option value="custom">Custom (edit the counts)</option></select></label>
+      </div>
+      <div class="sli-scroll">
+      <table class="data">
+        <thead><tr><th scope="col">Request</th><th scope="col" class="num">HTTP status</th><th scope="col">Requests</th><th scope="col">Duration (ms, illustrative)</th><th scope="col" class="num">5xx errors</th><th scope="col" class="num">Availability</th></tr></thead>
+        <tbody>
+<tr><td><code>GET /ok</code></td><td class="num">200</td><td><input type="number" min="0" step="1" id="sli-count-ok" value="100" data-default="100" aria-label="Number of /ok requests"></td><td><input type="number" min="0" step="1" id="sli-ms-ok" value="5" data-default="5" aria-label="Illustrative duration in milliseconds of a /ok request"></td><td class="num" id="sli-r-err-ok"></td><td class="num" id="sli-r-av-ok"></td></tr>
+<tr><td><code>GET /slow</code></td><td class="num">200</td><td><input type="number" min="0" step="1" id="sli-count-slow" value="20" data-default="20" aria-label="Number of /slow requests"></td><td><input type="number" min="0" step="1" id="sli-ms-slow" value="200" data-default="200" aria-label="Illustrative duration in milliseconds of a /slow request"></td><td class="num" id="sli-r-err-slow"></td><td class="num" id="sli-r-av-slow"></td></tr>
+<tr><td><code>GET /error</code></td><td class="num">500</td><td><input type="number" min="0" step="1" id="sli-count-error" value="20" data-default="20" aria-label="Number of /error requests"></td><td><input type="number" min="0" step="1" id="sli-ms-error" value="5" data-default="5" aria-label="Illustrative duration in milliseconds of a /error request"></td><td class="num" id="sli-r-err-error"></td><td class="num" id="sli-r-av-error"></td></tr>
+<tr><td><code>GET /exception</code></td><td class="num">500</td><td><input type="number" min="0" step="1" id="sli-count-exception" value="5" data-default="5" aria-label="Number of /exception requests"></td><td><input type="number" min="0" step="1" id="sli-ms-exception" value="5" data-default="5" aria-label="Illustrative duration in milliseconds of a /exception request"></td><td class="num" id="sli-r-err-exception"></td><td class="num" id="sli-r-av-exception"></td></tr>
+<tr><td><code>GET /chain</code></td><td class="num">200</td><td><input type="number" min="0" step="1" id="sli-count-chain" value="50" data-default="50" aria-label="Number of /chain requests"></td><td><input type="number" min="0" step="1" id="sli-ms-chain" value="6" data-default="6" aria-label="Illustrative duration in milliseconds of a /chain request"></td><td class="num" id="sli-r-err-chain"></td><td class="num" id="sli-r-av-chain"></td></tr>
+<tr><td><code>GET /chain-fail</code></td><td class="num">502</td><td><input type="number" min="0" step="1" id="sli-count-chain-fail" value="10" data-default="10" aria-label="Number of /chain-fail requests"></td><td><input type="number" min="0" step="1" id="sli-ms-chain-fail" value="6" data-default="6" aria-label="Illustrative duration in milliseconds of a /chain-fail request"></td><td class="num" id="sli-r-err-chain-fail"></td><td class="num" id="sli-r-av-chain-fail"></td></tr>
+<tr><td><code>GET /checkout</code></td><td class="num">200</td><td><input type="number" min="0" step="1" id="sli-count-checkout" value="20" data-default="20" aria-label="Number of /checkout requests"></td><td><input type="number" min="0" step="1" id="sli-ms-checkout" value="60" data-default="60" aria-label="Illustrative duration in milliseconds of a /checkout request"></td><td class="num" id="sli-r-err-checkout"></td><td class="num" id="sli-r-av-checkout"></td></tr>
+        </tbody>
+      </table>
+      </div>
+      <div class="sli-out out" aria-live="polite">
+        <div class="kpi"><span class="big" id="sli-avail">84.44%</span><span class="what">availability</span></div>
+        <div class="kpi"><span class="big" id="sli-total">225</span><span class="what">requests</span></div>
+        <div class="kpi"><span class="big" id="sli-errors">35</span><span class="what">errors (5xx)</span></div>
+        <div class="kpi"><span class="big" id="sli-p50"></span><span class="what">p50, illustrative</span></div>
+        <div class="kpi"><span class="big" id="sli-p95"></span><span class="what">p95, illustrative</span></div>
+        <div class="kpi"><span class="big" id="sli-p99"></span><span class="what">p99, illustrative</span></div>
+      </div>
+      <p class="out" id="sli-line" aria-live="polite">190 non-5xx requests out of 225 is 84.44%. 35 failed with a 5xx status.</p>
+      <p class="readout" id="sli-check">Inputs equal the captured run.</p>
+    </div>
+    <div class="evid">
+      <h3>Worked check against the evidence</h3>
+      <p>The captured run sent 100 + 20 + 20 + 5 + 50 + 10 + 20 = 225 requests. The failing types are <code>/error</code> (20), <code>/exception</code> (5) and <code>/chain-fail</code> (10), which is 35 requests, matching <code>expected_http_5xx</code> = 35. Then 190 of 225 succeeded, and 190 / 225 = 0.844444, which is the <code>expected_availability</code> in the file (0.844444). With the default inputs the calculator shows 84.44%.</p>
+      <p class="src">Source: <code>evidence/ground-truth.json</code>, run <code>course-evidence-002020</code>. Expectations come from the contract table, not from observed telemetry, and module 9 shows the check that compares them with ClickHouse.</p>
+    </div>
+  </section>
+
+  <section aria-labelledby="errors">
+    <h2 id="errors">The error list</h2>
+    <p>The dashboard has two error lists, and each is also a saved search: <em>Error list: failed spans</em> (spans with error status) and <em>Error list: error logs</em> (log lines with severity ERROR). The screenshot shows the log search.</p>
+    <figure class="shot">
+      <img src="../evidence/screens/search-error-logs.png" alt="HyperDX saved search named Error list: error logs, with a histogram of error counts over time and a table of log lines with timestamp, service, body and trace id">
+      <figcaption>The saved search <em>Error list: error logs</em>, captured on 2026-10-03T14:21:31Z. The page shows 125 results, 8,106 scanned rows and 76 ms elapsed.</figcaption>
+    </figure>
+    <p>Each row tells you four things: when the line was written, which service wrote it, what it said, and the trace id of the request it belongs to. The service and body show where and how it failed. In the screenshot, a <code>web</code> line <em>chain-fail: backend ...</em> and a <code>backend</code> line <em>backend failure</em> have the same trace id. They are the two ERROR lines of one <code>/chain-fail</code> request, one from each service. A row does not say which test run it came from and does not say whether the failure is still happening.</p>
+  </section>
+
+  <section aria-labelledby="link">
+    <h2 id="link">From a log line to its spans</h2>
+    <p>The trace id is the join. Copy the trace id from an error row, search spans for that <code>TraceId</code>, and you get the request's server span, client span and backend spans, with the status and duration of each. Search logs for the same id to read every line the request wrote. Module 4 shows the same relationship on one captured trace. The span id on a log line then names the span that wrote it.</p>
+  </section>
+
+  <section aria-labelledby="runlog">
+    <h2 id="runlog">Following one test run</h2>
+    <p>Every request the load generator sends carries a run id, and the app records it as the attribute <code>test_run_id</code> on spans, log records and metrics. The <em>Runlog</em> dashboard has four tiles and a filter on that attribute: a requests-by-endpoint-and-status table, a timeline of spans per service, the logs of the run, and the spans of the run. Select the run id in the filters and all four tiles show that run only. There are two filters, one for logs and one for traces, because the attribute lives in <code>LogAttributes</code> on logs and in <code>SpanAttributes</code> on spans.</p>
+    <figure class="shot">
+      <img src="../evidence/screens/dash-runlog.png" alt="HyperDX dashboard named Runlog with two test_run_id filters, a table of requests by endpoint and status, a run timeline, run logs and run spans">
+      <figcaption>The Runlog dashboard, captured on 2026-10-03T14:21:21Z. No run id is selected in the two filters in this capture, so the tiles count every run in the time range.</figcaption>
+    </figure>
+  </section>
+
+  <section aria-labelledby="model">
+    <h2 id="model">The columns you will read</h2>
+    <p>Spans are rows in <code>otel_traces</code> and log lines are rows in <code>otel_logs</code>. For the dashboards and searches in this module you need these columns.</p>
+    <table class="data">
+      <thead><tr><th scope="col">Table</th><th scope="col">Column</th><th scope="col">Meaning</th></tr></thead>
+      <tbody>
+        <tr><td>otel_traces</td><td><code>SpanName</code></td><td>The operation, for example <code>GET /chain</code>.</td></tr>
+        <tr><td>otel_traces</td><td><code>SpanKind</code></td><td>Server, Client or Internal. The dashboard counts Server spans of <code>web</code>.</td></tr>
+        <tr><td>otel_traces</td><td><code>StatusCode</code></td><td>Unset or Error. Error is what the availability formula treats as a failure.</td></tr>
+        <tr><td>otel_traces</td><td><code>Duration</code></td><td>Span length in nanoseconds. The dashboards show milliseconds.</td></tr>
+        <tr><td>otel_traces</td><td><code>TraceId</code>, <code>ParentSpanId</code></td><td>The request, and the span that called this one. The root span's parent is empty.</td></tr>
+        <tr><td>otel_logs</td><td><code>Body</code></td><td>The log message.</td></tr>
+        <tr><td>otel_logs</td><td><code>SeverityText</code></td><td>INFO, ERROR and so on.</td></tr>
+        <tr><td>otel_logs</td><td><code>LogAttributes</code></td><td>A map of extra attributes, such as <code>test_run_id</code>. Spans have the equivalent <code>SpanAttributes</code>.</td></tr>
+      </tbody>
+    </table>
+    <div class="evid">
+      <h3>Real rows of one request</h3>
+      <p>These are the spans and logs of the captured <code>GET /chain</code> request, trace id <code>db4b635984efdc74db9c685a6ad2fdaf</code>. The durations are shown in milliseconds.</p>
+      <div class="sli-scroll">
+      <table class="data">
+        <thead><tr><th scope="col">ServiceName</th><th scope="col">SpanName</th><th scope="col">SpanKind</th><th scope="col">StatusCode</th><th scope="col" class="num">Duration (ms)</th><th scope="col">ParentSpanId</th></tr></thead>
+        <tbody>
+<tr><td>web</td><td><code>GET /chain</code></td><td>Server</td><td>Unset</td><td class="num">42.132</td><td><code>(empty)</code></td></tr>
+<tr><td>web</td><td><code>backend.Process</code></td><td>Client</td><td>Unset</td><td class="num">42.1</td><td><code>dfe02fcabfcef1a4</code></td></tr>
+<tr><td>backend</td><td><code>backend.Process</code></td><td>Server</td><td>Unset</td><td class="num">6.445</td><td><code>68ba91820c84df47</code></td></tr>
+<tr><td>backend</td><td><code>backend.compute</code></td><td>Internal</td><td>Unset</td><td class="num">6.416</td><td><code>c38377bb6f4575af</code></td></tr>
+        </tbody>
+      </table>
+      <table class="data">
+        <thead><tr><th scope="col">ServiceName</th><th scope="col">SeverityText</th><th scope="col">Body</th><th scope="col">SpanId</th></tr></thead>
+        <tbody>
+<tr><td>backend</td><td>INFO</td><td>backend processed</td><td><code>c38377bb6f4575af</code></td></tr>
+<tr><td>web</td><td>INFO</td><td>chain handled</td><td><code>dfe02fcabfcef1a4</code></td></tr>
+        </tbody>
+      </table>
+      </div>
+      <p class="src">Source: ClickHouse <code>otel.otel_traces</code> and <code>otel.otel_logs</code>, captured 2026-10-03T14:20:34Z (<code>evidence/trace-sample.json</code>).</p>
+    </div>
+  </section>
+
+  <section aria-labelledby="cost">
+    <h2 id="cost">Why searches should be time-bounded and field-filtered</h2>
+    <p>A search in a scan-priced system is billed on the data it reads, so a wide time range costs more even when it finds the same lines (module 1 shows the price model). In ClickHouse the log and trace tables are partitioned by day and have the service and the time in their sort key, so a short time range and a filter on the service let it skip most of the data it would otherwise read, and the cost shows up as a busier server and not as a larger bill. Both habits also make searches faster in either system. The screenshot above shows the kind of figure to look at: rows scanned compared with results returned. Module 1 has the explorer for the cost comparison, with its assumptions.</p>
+    <p><a href="01-problem-and-outcome.html">Back to module 1: the problem and the outcome</a></p>
+  </section>
+
+  <section class="quiz" data-quiz aria-labelledby="quiz-h">
+    <h2 id="quiz-h">Check your understanding</h2>
+    <fieldset class="q" data-answer="a">
+      <legend>A one-minute window contains 100 <code>/ok</code>, 30 <code>/chain</code>, 20 <code>/error</code> and 10 <code>/chain-fail</code> requests and nothing else. What does the availability tile show for it?</legend>
+      <label class="opt"><input type="radio" name="q1" value="a"><span>81.25%: 130 of the 160 requests are not 5xx, so 30 failed.<span class="why">The three 5xx types are the failures, and the formula divides everything else by the total.</span></span></label>
+      <label class="opt"><input type="radio" name="q1" value="b"><span>87.5%, because only the 20 <code>/error</code> requests failed.<span class="why">A 502 is a 5xx status as well, so revisit which responses the error status covers.</span></span></label>
+      <label class="opt"><input type="radio" name="q1" value="c"><span>62.5%, because only <code>/ok</code> requests count as available.<span class="why">Every request without a 5xx status is available, so revisit what the numerator contains.</span></span></label>
+      <p class="feedback" role="status" aria-live="polite"></p>
+    </fieldset>
+    <fieldset class="q" data-answer="c">
+      <legend>An error-list row shows service <code>backend</code>, body <em>backend failure</em> and a trace id. You need to know what the user-facing request did. What do you do with the row?</legend>
+      <label class="opt"><input type="radio" name="q2" value="a"><span>Read the test run id from the row to find the run, then read the run's totals.<span class="why">The error list does not show the run id as a column, so revisit what each row contains.</span></span></label>
+      <label class="opt"><input type="radio" name="q2" value="b"><span>Conclude that only the backend was affected, because only the backend wrote the line.<span class="why">A line records where something was logged and not how far the effect travelled, so look at the other spans of the request.</span></span></label>
+      <label class="opt"><input type="radio" name="q2" value="c"><span>Look the trace id up in the spans and the logs of both services.<span class="why">The trace id is the key that groups everything the request produced, across both services.</span></span></label>
+      <p class="feedback" role="status" aria-live="polite"></p>
+    </fieldset>
+    <fieldset class="q" data-answer="c">
+      <legend>Two load runs overlapped in time on the same stack and you want the failed requests of run B only. What gives you exactly those?</legend>
+      <label class="opt"><input type="radio" name="q3" value="a"><span>Narrow the dashboard's time range to the start and end of run B.<span class="why">Where the runs overlap, the range still includes requests of run A, so revisit what separates the two runs.</span></span></label>
+      <label class="opt"><input type="radio" name="q3" value="b"><span>Filter on the service <code>web</code>, because each run uses its own service name.<span class="why">Both runs use the same service names, so that filter cannot tell the runs apart.</span></span></label>
+      <label class="opt"><input type="radio" name="q3" value="c"><span>Set the runlog's <code>test_run_id</code> filters to run B's id and read the failures.<span class="why">The attribute is recorded on every span and log record of a run, so a filter on it separates the runs however their times overlap.</span></span></label>
+      <p class="feedback" role="status" aria-live="polite"></p>
+    </fieldset>
+    <p class="score" aria-live="polite"></p>
+    <p class="gate" hidden>All correct. Continue to module 6 to see how alerts are evaluated on the data you just read.</p>
+  </section>
+
+  <nav class="pager" aria-label="Module navigation">
+    <a href="04-sending-telemetry.html">Previous: Sending telemetry</a>
+    <a class="next" href="06-alerts.html">Next: Alerts</a>
+  </nav>
+</main>
+<script src="../assets/quiz.js" defer></script>
+<script src="../assets/course.js" defer></script>
+<script src="../assets/sim-sli.js" defer></script>
+</body>
+</html>

@@ -1,0 +1,69 @@
+{
+  "trace_id": "8599d7c6e360400bafc2ae2997ab26f7",
+  "rows": [
+    {
+      "Timestamp": "2026-10-03 12:17:42.886639988",
+      "TraceId": "8599d7c6e360400bafc2ae2997ab26f7",
+      "SpanId": "a7076e2387251e98",
+      "TraceFlags": 0,
+      "SeverityText": "INFO",
+      "SeverityNumber": 9,
+      "ServiceName": "backend",
+      "Body": "backend processed",
+      "ResourceSchemaUrl": "",
+      "ResourceAttributes": {
+        "deployment.environment.name": "local",
+        "service.name": "backend",
+        "service.version": "0.1.0"
+      },
+      "ScopeSchemaUrl": "",
+      "ScopeName": "",
+      "ScopeVersion": "",
+      "ScopeAttributes": {},
+      "LogAttributes": {
+        "test_run_id": "payload-buffer"
+      },
+      "EventName": "",
+      "_odb_sequence": "451",
+      "_odb_entry_index": 0,
+      "_odb_record_index": 1,
+      "_odb_manifest_path": "otel/logs/manifest",
+      "_odb_data_path": "otel/logs/data/01M40GJ97AZQNG583NTASQCVVQ/000000000000004d",
+      "_odb_ingestion_time_ms": "1791029862942",
+      "_adapter_version": 1,
+      "_odb_clickhouse_inserted_at": "2026-10-03 12:17:43.285457417"
+    },
+    {
+      "Timestamp": "2026-10-03 12:17:42.886727696",
+      "TraceId": "8599d7c6e360400bafc2ae2997ab26f7",
+      "SpanId": "760230a643ba946a",
+      "TraceFlags": 0,
+      "SeverityText": "INFO",
+      "SeverityNumber": 9,
+      "ServiceName": "web",
+      "Body": "chain handled",
+      "ResourceSchemaUrl": "",
+      "ResourceAttributes": {
+        "deployment.environment.name": "local",
+        "service.name": "web",
+        "service.version": "0.1.0"
+      },
+      "ScopeSchemaUrl": "",
+      "ScopeName": "",
+      "ScopeVersion": "",
+      "ScopeAttributes": {},
+      "LogAttributes": {
+        "test_run_id": "payload-buffer"
+      },
+      "EventName": "",
+      "_odb_sequence": "451",
+      "_odb_entry_index": 0,
+      "_odb_record_index": 0,
+      "_odb_manifest_path": "otel/logs/manifest",
+      "_odb_data_path": "otel/logs/data/01M40GJ97AZQNG583NTASQCVVQ/000000000000004d",
+      "_odb_ingestion_time_ms": "1791029862942",
+      "_adapter_version": 1,
+      "_odb_clickhouse_inserted_at": "2026-10-03 12:17:43.285457417"
+    }
+  ]
+}

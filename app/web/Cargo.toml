@@ -1,0 +1,25 @@
+[package]
+name = "web"
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+publish.workspace = true
+
+[lib]
+name = "web"
+
+[[bin]]
+name = "web"
+path = "src/main.rs"
+
+[dependencies]
+contract.workspace = true
+telemetry.workspace = true
+axum.workspace = true
+tonic.workspace = true
+tokio.workspace = true
+tracing.workspace = true
+trace_macros.workspace = true
+tracing-opentelemetry.workspace = true
+opentelemetry.workspace = true
+anyhow.workspace = true

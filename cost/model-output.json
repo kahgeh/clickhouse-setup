@@ -1,0 +1,135 @@
+{
+  "region": "ap-southeast-2",
+  "user": {
+    "logs_raw_bytes_month": 1590000000000.0,
+    "logs_events_month": 2780000000.0,
+    "logs_bytes_per_event": 569,
+    "logs_retained_raw_bytes": 2770000000000.0,
+    "metrics_samples_month": 20000000000.0,
+    "metrics_samples_per_s": 7600.0,
+    "metrics_active_series": 485000.0
+  },
+  "scenarios": {
+    "low": {
+      "log_ch_ratio": 10,
+      "metric_ch_bytes_per_sample": 10,
+      "flush_s": 10,
+      "poll_s": 1.0,
+      "ha": false
+    },
+    "base": {
+      "log_ch_ratio": 7,
+      "metric_ch_bytes_per_sample": 16,
+      "flush_s": 5,
+      "poll_s": 1.0,
+      "ha": true
+    },
+    "high": {
+      "log_ch_ratio": 4,
+      "metric_ch_bytes_per_sample": 28,
+      "flush_s": 1,
+      "poll_s": 0.25,
+      "ha": true
+    }
+  },
+  "fixed": {
+    "collectors": 3,
+    "signals": 2,
+    "buffer_zstd_ratio_logs": 5,
+    "buffer_zstd_ratio_metrics": 4,
+    "otlp_bytes_per_log": 650,
+    "otlp_bytes_per_sample": 80,
+    "flush_size_bytes": 4194304,
+    "puts_per_flush": 1.25,
+    "metrics_retention_months": 1.0,
+    "ebs_headroom": 1.3,
+    "gets_per_object": 1.0
+  },
+  "results": {
+    "low": {
+      "S3 PUT requests": 10.692,
+      "S3 GET requests (incl. manifest polling)": 2.9652480000000003,
+      "S3 transient storage": 6.345,
+      "_detail_puts_month": 1944000.0,
+      "_detail_gets_month": 6739200.0,
+      "_detail_buffer_bytes_month": 761400000000.0,
+      "ClickHouse EBS storage (gp3)": 59.5296,
+      "ClickHouse compute": 173.952,
+      "_detail_stored_gb": 477.0,
+      "Collectors": 191.80800000000002,
+      "Ingestors": 127.872,
+      "HyperDX + MongoDB": 69.12
+    },
+    "base": {
+      "S3 PUT requests": 21.384,
+      "S3 GET requests (incl. manifest polling)": 3.6495360000000003,
+      "S3 transient storage": 6.345,
+      "_detail_puts_month": 3888000.0,
+      "_detail_gets_month": 8294400.0,
+      "_detail_buffer_bytes_month": 761400000000.0,
+      "ClickHouse EBS storage (gp3)": 178.64228571428572,
+      "ClickHouse compute": 347.904,
+      "ClickHouse Keeper x3": 191.80800000000002,
+      "_detail_stored_gb": 715.7142857142857,
+      "Collectors": 191.80800000000002,
+      "Ingestors": 127.872,
+      "HyperDX + MongoDB": 69.12
+    },
+    "high": {
+      "S3 PUT requests": 106.92,
+      "S3 GET requests (incl. manifest polling)": 15.96672,
+      "S3 transient storage": 6.345,
+      "_detail_puts_month": 19440000.0,
+      "_detail_gets_month": 36288000.0,
+      "_detail_buffer_bytes_month": 761400000000.0,
+      "ClickHouse EBS storage (gp3)": 312.624,
+      "ClickHouse compute": 347.904,
+      "ClickHouse Keeper x3": 191.80800000000002,
+      "_detail_stored_gb": 1252.5,
+      "Collectors": 191.80800000000002,
+      "Ingestors": 127.872,
+      "HyperDX + MongoDB": 69.12
+    }
+  },
+  "totals": {
+    "low": 642.283848,
+    "base": 1138.5328217142858,
+    "high": 1370.36772
+  },
+  "flush_sensitivity": [
+    {
+      "flush_s": 0.1,
+      "puts": 194400000.0,
+      "s3_request_usd": 1139.90976
+    },
+    {
+      "flush_s": 0.5,
+      "puts": 38880000.0,
+      "s3_request_usd": 229.80672
+    },
+    {
+      "flush_s": 1,
+      "puts": 19440000.0,
+      "s3_request_usd": 116.04384
+    },
+    {
+      "flush_s": 5,
+      "puts": 3888000.0,
+      "s3_request_usd": 25.033536
+    },
+    {
+      "flush_s": 10,
+      "puts": 1944000.0,
+      "s3_request_usd": 13.657248000000001
+    },
+    {
+      "flush_s": 30,
+      "puts": 648000.0,
+      "s3_request_usd": 6.073056
+    }
+  ],
+  "kafka_alternative": {
+    "MSK brokers (3 x kafka.m7g.large)": 550.8,
+    "MSK storage (gp2)": 27.4104
+  }
+}

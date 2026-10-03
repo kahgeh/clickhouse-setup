@@ -1,0 +1,7 @@
+# upstream collector image, object store stopped for ~9 s while 300 log records were sent
+2026-10-03T11:46:36.518Z  error  Exporting failed. Dropping data.  dropped_items=100
+    storage error: operation error S3: PutObject, https response error StatusCode: 0, RequestID: , HostID: , request send failed, Put \
+2026-10-03T11:46:36.518Z  error  Exporting failed. Dropping data.  dropped_items=100
+    storage error: operation error S3: PutObject, https response error StatusCode: 0, RequestID: , HostID: , request send failed, Put \
+2026-10-03T11:46:36.518Z  error  Exporting failed. Dropping data.  dropped_items=100
+    storage error: operation error S3: PutObject, https response error StatusCode: 0, RequestID: , HostID: , request send failed, Put \

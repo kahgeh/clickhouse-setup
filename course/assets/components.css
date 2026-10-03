@@ -1,0 +1,166 @@
+/* Components. Every value is a token: scales from tokens.css, colours and
+   fonts from the active look. A look never touches this file. */
+
+*, *::before, *::after { box-sizing: border-box; }
+
+html { color-scheme: light dark; -webkit-text-size-adjust: 100%; }
+html[data-theme="light"] { color-scheme: light; }
+html[data-theme="dark"] { color-scheme: dark; }
+
+body {
+  margin: 0;
+  background: var(--surface-1);
+  color: var(--text-1);
+  font-family: var(--font-body);
+  font-size: var(--body-size);
+  line-height: var(--font-lineheight-4);
+}
+
+main {
+  max-inline-size: var(--measure);
+  margin-inline: auto;
+  padding: var(--size-fluid-4) var(--size-3) var(--size-9);
+}
+
+h1, h2, h3 {
+  font-family: var(--font-heading);
+  font-weight: var(--heading-weight);
+  letter-spacing: var(--heading-tracking);
+  line-height: var(--font-lineheight-1);
+  margin: 0;
+  text-wrap: balance;
+}
+h1 { font-size: var(--font-size-fluid-2); line-height: var(--font-lineheight-0); }
+h2 { font-size: var(--font-size-4); margin-block: var(--size-8) var(--size-3); padding-block-start: var(--size-5); border-block-start: var(--section-rule); }
+h3 { font-size: var(--font-size-2); margin-block: var(--size-5) var(--size-2); }
+
+p, ul, ol { margin-block: 0 var(--size-3); }
+.lede { font-size: var(--font-size-3); color: var(--text-2); line-height: var(--font-lineheight-3); margin-block-start: var(--size-3); }
+.meta { color: var(--text-2); font-size: var(--font-size-0); letter-spacing: var(--font-letterspacing-1); margin-block-end: var(--size-3); }
+
+a { color: var(--accent); text-underline-offset: .2em; }
+
+code, pre { font-family: var(--font-code); font-size: .9em; }
+:not(pre) > code {
+  overflow-wrap: anywhere;
+  background: var(--surface-3);
+  padding: .1em .35em;
+  border-radius: var(--radius-1);
+}
+pre {
+  background: var(--surface-3);
+  border: var(--border-size-1) solid var(--border);
+  border-radius: var(--card-radius);
+  padding: var(--size-3);
+  overflow-x: auto;
+  line-height: var(--font-lineheight-3);
+  margin: 0 0 var(--size-3);
+}
+pre.mermaid svg { display: block; inline-size: auto; max-inline-size: none; margin-inline: auto; }
+pre.mermaid { background: none; border: 0; padding: 0; margin: 0; font-family: var(--font-body); font-size: var(--font-size-1); overflow-x: auto; }
+pre .add { color: var(--good); }
+pre .del { color: var(--warn); }
+
+dfn { font-style: normal; font-weight: var(--font-weight-6); color: var(--accent); }
+
+/* Figure: one diagram, one message. */
+figure {
+  margin: var(--size-5) 0;
+  padding: var(--size-fluid-2);
+  background: var(--figure-bg);
+  border: var(--border-size-1) solid var(--border);
+  border-radius: var(--card-radius);
+}
+figcaption { color: var(--text-2); font-size: var(--font-size-1); margin-block-start: var(--size-3); line-height: var(--font-lineheight-3); }
+figure svg { display: block; inline-size: 100%; block-size: auto; font-family: var(--font-body); }
+
+.d-cell { fill: var(--surface-2); stroke: var(--border-strong); stroke-width: 1; }
+.d-cell--hit { fill: var(--accent-soft); stroke: var(--accent); stroke-width: 2; }
+.d-cell--visited { fill: var(--surface-3); }
+.d-cell--idle { fill: none; stroke: var(--border); stroke-dasharray: 3 3; }
+.d-cell--key { fill: var(--surface-1); stroke: var(--accent); }
+.d-text { fill: var(--text-1); font-size: 16px; text-anchor: middle; dominant-baseline: central; }
+.d-text--idle { fill: var(--text-2); }
+.d-muted { fill: var(--text-2); font-size: 15px; }
+.d-label { fill: var(--text-1); font-size: 15px; font-weight: var(--font-weight-6); }
+.d-path { fill: none; stroke: var(--text-2); stroke-width: 1.5; }
+.d-path--accent { stroke: var(--accent); stroke-width: 2; }
+.d-arrowhead { fill: var(--text-2); }
+.d-arrowhead--accent { fill: var(--accent); }
+
+
+/* Lanes: who is in which state over time. A table, so phases span columns with
+   colspan and nothing is positioned by coordinates. */
+figure:has(> table.lanes) { overflow-x: auto; }
+table.lanes { inline-size: 100%; min-inline-size: var(--size-15); table-layout: fixed; border-collapse: separate; border-spacing: var(--size-1); }
+.lanes thead th { color: var(--text-2); font-weight: var(--font-weight-5); font-size: var(--font-size-0); letter-spacing: var(--font-letterspacing-1); text-align: start; padding-inline: var(--size-1); }
+.lanes tbody th { inline-size: var(--size-9); text-align: end; padding-inline-end: var(--size-2); color: var(--text-1); font-weight: var(--font-weight-6); }
+.lanes td { background: var(--surface-3); border: var(--border-size-1) solid var(--border); border-radius: var(--radius-2); padding: var(--size-2); text-align: center; line-height: var(--font-lineheight-1); }
+.lanes td:empty { background: none; border-color: transparent; }
+.lanes .is-active { background: var(--accent-soft); border-color: var(--accent); }
+.lanes .is-down { background: none; border-style: dashed; border-color: var(--border-strong); color: var(--text-2); }
+.lanes .is-changed { background: var(--warn-soft); border-color: var(--warn); }
+
+/* Before / after: the reader sees only what differs. */
+.compare {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 16rem), 1fr));
+  gap: var(--size-3);
+  margin: var(--size-5) 0;
+}
+.compare > section { min-inline-size: 0; }
+.compare h3 { margin-block: 0 var(--size-2); font-size: var(--font-size-0); letter-spacing: var(--font-letterspacing-1); color: var(--text-2); }
+.compare pre { margin: 0; block-size: calc(100% - var(--size-5)); }
+
+/* State table: one row per step, real values. */
+table.steps { inline-size: 100%; border-collapse: collapse; margin: var(--size-3) 0 var(--size-5); font-size: var(--font-size-1); }
+.steps th, .steps td { text-align: start; padding: var(--size-2) var(--size-3); border-block-end: var(--border-size-1) solid var(--border); vertical-align: top; }
+.steps th { color: var(--text-2); font-weight: var(--font-weight-6); font-size: var(--font-size-0); letter-spacing: var(--font-letterspacing-1); }
+.steps .changed { background: var(--warn-soft); }
+
+/* Text for assistive technology only. */
+.visually-hidden { position: absolute; inline-size: 1px; block-size: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
+
+/* Callout for a consequence the reader must not miss. */
+.note {
+  border-inline-start: var(--border-size-2) solid var(--warn);
+  background: var(--warn-soft);
+  padding: var(--size-3) var(--size-4);
+  border-radius: 0 var(--card-radius) var(--card-radius) 0;
+  margin: var(--size-5) 0;
+}
+.note > :last-child { margin-block-end: 0; }
+.note strong { color: var(--warn-text); }
+
+/* Quiz gate (teaching). */
+.quiz {
+  border: var(--border-size-1) solid var(--accent);
+  border-radius: var(--card-radius);
+  padding: var(--size-4);
+  margin: var(--size-7) 0 0;
+  background: var(--surface-2);
+}
+.quiz h2 { border: 0; padding: 0; margin: 0 0 var(--size-2); font-size: var(--font-size-3); }
+.quiz .q { border: 0; padding: 0; margin: var(--size-4) 0 0; min-inline-size: 0; }
+.quiz legend { padding: 0; margin-block-end: var(--size-2); font-weight: var(--font-weight-6); }
+.quiz .opt {
+  display: flex; gap: var(--size-3); align-items: flex-start;
+  margin-block-start: var(--size-2); padding: var(--size-2) var(--size-3);
+  background: var(--surface-1); border: var(--border-size-1) solid var(--border);
+  border-radius: var(--radius-2); cursor: pointer;
+}
+.quiz .opt:hover { border-color: var(--border-strong); }
+.quiz .q.is-correct .opt { cursor: default; }
+.quiz .q.is-correct .opt:not(.is-right):hover { border-color: var(--border); }
+.quiz .opt:has(input:focus-visible) { outline: var(--border-size-2) solid var(--accent); outline-offset: var(--size-1); }
+.quiz .opt input { flex: none; margin-block-start: var(--size-1); accent-color: var(--accent); }
+.quiz .opt.is-wrong { border-color: var(--warn); background: var(--warn-soft); }
+.quiz .opt.is-right { border-color: var(--good); }
+.quiz .opt.is-wrong::after, .quiz .opt.is-right::after { margin-inline-start: auto; font-size: var(--font-size-0); font-weight: var(--font-weight-6); white-space: nowrap; }
+.quiz .opt.is-wrong::after { content: "Not quite"; color: var(--warn-text); }
+.quiz .opt.is-right::after { content: "Correct"; color: var(--good); }
+.quiz .why { display: none; }
+.quiz .feedback { margin-block-start: var(--size-2); color: var(--text-2); line-height: var(--font-lineheight-3); }
+.quiz .score { margin-block: var(--size-4) 0; color: var(--text-2); font-size: var(--font-size-0); letter-spacing: var(--font-letterspacing-1); }
+.quiz .gate { margin-block: var(--size-3) 0; padding: var(--size-3) var(--size-4); border-inline-start: var(--border-size-2) solid var(--good); background: var(--surface-1); border-radius: 0 var(--card-radius) var(--card-radius) 0; }
+.quiz .gate[hidden] { display: none; }

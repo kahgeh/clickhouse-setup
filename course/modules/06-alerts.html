@@ -1,0 +1,195 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Alerts</title>
+<link rel="stylesheet" href="../assets/tokens.css">
+<link rel="stylesheet" href="../assets/theme.css">
+<link rel="stylesheet" href="../assets/components.css">
+<link rel="stylesheet" href="../assets/local.css">
+</head>
+<body data-module="m06">
+<nav class="site-bar" aria-label="Course"><a class="brand" href="../index.html">Observability course</a></nav>
+<main>
+  <header>
+    <p class="crumbs">Using it · module 3 of 3</p>
+    <h1>Alerts</h1>
+    <p class="lede">How the two alerts are evaluated, why exactly four failures does not fire them, and which failures an evaluation cannot see.</p>
+  </header>
+
+  <section class="goals" aria-labelledby="goals">
+    <h2 id="goals">After this module you can</h2>
+    <ul>
+      <li>predict whether an alert fires for a given number of failures,</li>
+      <li>explain why exactly the threshold does not fire, and</li>
+      <li>describe what the alert evaluation cannot see.</li>
+    </ul>
+  </section>
+
+  <section aria-labelledby="two">
+    <h2 id="two">The two alerts</h2>
+    <p>This module explains when the platform's two alerts fire, why exactly four failures does not fire them, and what an alert evaluation cannot see. Both alerts watch for more than four failures in one minute. One counts failed requests on a dashboard tile and the other counts ERROR log lines in a saved search.</p>
+    <ul>
+      <li><strong>5xx errors above 4 per minute (dashboard tile)</strong> watches the tile <em>Errors (5xx)</em> of the Availability &amp; Latency dashboard, which counts server spans of <code>web</code> with error status (module 5).</li>
+      <li><strong>ERROR logs above 4 per minute (saved search)</strong> watches the saved search <em>Error list: error logs</em>, which counts log lines with severity ERROR.</li>
+    </ul>
+    <p>The alerts are created from code through HyperDX's API when the stack is provisioned, like the dashboards. Both use a threshold of 4, the type <code>above_exclusive</code>, an interval of one minute, and one webhook channel that posts to a small local receiver. The receiver records each notification, which is how the tests check deliveries.</p>
+    <figure class="shot">
+      <img src="../evidence/screens/alerts.png" alt="HyperDX alerts page with two alerts in the ALERT state, each reading: if value is above (>) 4">
+      <figcaption>The two alerts in the ALERT state, captured on 2026-10-03T14:21:40Z. Each reads "above (&gt;) 4".</figcaption>
+    </figure>
+  </section>
+
+  <section aria-labelledby="semantics">
+    <h2 id="semantics">Threshold semantics</h2>
+    <p>HyperDX has two threshold types, and the names are easy to misread.</p>
+    <table class="data">
+      <thead><tr><th scope="col">Threshold type</th><th scope="col">Fires when</th><th scope="col">Message reads</th></tr></thead>
+      <tbody>
+        <tr><td><code>above</code></td><td>count &ge; threshold</td><td>"N meets or exceeds 4"</td></tr>
+        <tr><td><code>above_exclusive</code></td><td>count &gt; threshold</td><td>"N exceeds 4"</td></tr>
+      </tbody>
+    </table>
+    <p>The alerts here use <code>above_exclusive</code> and are named "above 4", so a count of exactly 4 does not fire them and a count of 5 does. The alerts page shows "above (&gt;) 4". A request that fails does not always add one to the count, because the two alerts count different things. A <code>/chain-fail</code> request is one 5xx server span, but it writes two ERROR log lines, one from each service, so the log alert counts it twice. Four <code>/chain-fail</code> requests are four failures for the tile and eight lines for the log alert.</p>
+  </section>
+
+  <section aria-labelledby="timing">
+    <h2 id="timing">When the evaluation happens</h2>
+    <p>HyperDX evaluates each alert once a minute, at second :00, over the minute that just ended. The window is a fixed minute, for example 9:56:00 to 9:57:00 UTC, and not a sliding one. The evaluation does not wait for slow data: a row counts only if it is already in ClickHouse at that moment, and a row that arrives after :00 is not counted by this evaluation or by any later one, because the next evaluation looks at the next minute.</p>
+    <p>That is the late-row blind spot. The platform's measured delay from event to queryable, for every row of the verification run, was a median of 0.6 s and a 99th percentile of 1.4 s for logs, and a median of 1.2 s and a 99th percentile of 2.8 s for spans. A failure in the last few seconds of a minute can therefore be queryable only after :00. These numbers were measured on one laptop with a 100 ms collector flush; no measurement shows how often a real alert missed rows, and the simulator below takes the delay as an input.</p>
+    <p>Two consequences follow. Failures spread across two minutes are counted separately, so three failures at the end of one minute and three at the start of the next are not six failures in one window. And the test that checks the boundary starts its burst early in a minute, between second 5 and second 40, so that every row has landed before :00.</p>
+  </section>
+
+  <section aria-labelledby="sim">
+    <h2 id="sim">Alert window simulator</h2>
+    <p>Set how many failures happen, the threshold and comparison, the second at which they happen and the ingest delay, and read whether the evaluation counts them. The timeline shows two minutes with the evaluation at second 60 and second 120.</p>
+    <aside class="note"><p><strong>The model.</strong> All failures happen at one second, and they reach ClickHouse after the ingest delay. A row arriving at the evaluation second or later counts as late. That boundary is an assumption of the simulator, since sub-second timing was not measured. The comparison and the once-a-minute evaluation follow the behaviour described above.</p></aside>
+    <div class="sim" id="alert-sim">
+      <h3>Does the evaluation count them?</h3>
+      <div class="controls">
+        <label class="ctl">Failures <output id="al-fail-o">5</output>
+          <input type="range" id="al-fail" min="0" max="100" value="5"></label>
+        <label class="ctl">Threshold
+          <input type="number" id="al-thr" min="1" max="100" value="4"></label>
+        <label class="ctl">Comparison
+          <select id="al-op"><option value="&gt;" selected>above (&gt;), above_exclusive</option><option value="&gt;=">above (&gt;=), meets or exceeds</option></select></label>
+        <label class="ctl">Minute of the failures
+          <select id="al-minute"><option value="first" selected>the first minute</option><option value="next">the next minute</option></select></label>
+        <label class="ctl">Second within the minute <output id="al-sec-o">20 s</output>
+          <input type="range" id="al-sec" min="0" max="59" value="20"></label>
+        <label class="ctl">Ingest delay <output id="al-delay-o">1 s</output>
+          <input type="range" id="al-delay" min="0" max="30" value="1"></label>
+      </div>
+      <figure>
+        <svg id="alert-svg" viewBox="0 0 760 164" role="img" aria-labelledby="alert-t alert-d"><title id="alert-t">Timeline of two minutes with alert evaluations</title><desc id="alert-d">Two one-minute windows with an evaluation at the end of each. A marker shows when the failures happen and a second marker when they reach ClickHouse.</desc></svg>
+        <figcaption>The failures happen at the first marker and reach ClickHouse at the second. A second marker after the evaluation line means the rows are late.</figcaption>
+      </figure>
+      <p class="out" id="al-out" aria-live="polite">Set the inputs to see the outcome.</p>
+      <p class="readout" id="al-readout"></p>
+    </div>
+    <p>Try these. Set failures to 4 with the comparison "above (&gt;)": the count equals the threshold and nothing fires. Switch to "above (&gt;=)" and it fires. Set 20 failures at second 55 with a delay of 10 s: the rows arrive at second 65, after the evaluation, and nothing fires although 20 is above 4. Move the failures to "the next minute" to see the second evaluation count them.</p>
+  </section>
+
+  <section aria-labelledby="payloads">
+    <h2 id="payloads">The notifications</h2>
+    <p>When an alert changes to ALERT, HyperDX posts to the webhook, and it posts again when the alert returns to OK. The receiver stores the body, which is built from a template with the fields title, state, body and link. These are real deliveries recorded by the receiver during the alert tests. The sample log lines that the log alert appends to its message, and the links, are left out.</p>
+    <div class="evid">
+      <pre class="log">title: 🚨 Alert: 5xx errors above 4 per minute (dashboard tile)
+state: ALERT
+body:
+60 exceeds 4
+Time Range (UTC): [Oct 3 9:56:00 AM - Oct 3 9:57:00 AM)
+More than 4 web requests failed with 5xx in the last minute</pre>
+      <pre class="log">title: 🚨 Alert: ERROR logs above 4 per minute (saved search)
+state: ALERT
+body:
+70 lines found, which exceeds the threshold of 4 lines
+Time Range (UTC): [Oct 3 9:56:00 AM - Oct 3 9:57:00 AM)
+More than 4 ERROR log lines in the last minute</pre>
+      <pre class="log">title: ✅ Alert: 5xx errors above 4 per minute (dashboard tile)
+state: OK
+body:
+The alert has been resolved.
+Time Range (UTC): [Oct 3 9:57:00 AM - Oct 3 9:58:00 AM)
+More than 4 web requests failed with 5xx in the last minute</pre>
+      <p class="src">Source: webhook receiver, <code>curl localhost:8089/received</code>, captured 2026-10-03T14:20:34Z (<code>evidence/alert-deliveries.json</code>). The counts match the checks below (60 failed requests and 70 ERROR lines). The firing notifications arrived 0.07 s after the end of their window, and the resolve notifications one minute later.</p>
+    </div>
+    <p>The tile alert says "60 exceeds 4" and the log alert says "70 lines found, which exceeds the threshold of 4 lines". The log count is higher than the request count because requests to <code>/chain-fail</code> write two ERROR lines each.</p>
+  </section>
+
+  <section aria-labelledby="tests">
+    <h2 id="tests">How the tests verified it</h2>
+    <p>The alert test sends known traffic and reads the alert states from HyperDX and the notifications from the receiver. It waits for the evaluation, and it checks the boundary that matters: exactly four failures must not fire.</p>
+    <div class="evid">
+      <div class="alert-scroll">
+      <table class="data">
+        <thead><tr><th scope="col">Check</th><th scope="col">What it asserts</th><th scope="col">Result</th></tr></thead>
+        <tbody>
+<tr class="is-ok"><td><code>AL0</code></td><td>baseline: both alerts reach state OK</td><td><span class="pill pill--ok">pass</span></td></tr>
+<tr class="is-ok"><td><code>AL1a</code></td><td>healthy traffic: both alerts remain OK</td><td><span class="pill pill--ok">pass</span></td></tr>
+<tr class="is-ok"><td><code>AL1b</code></td><td>healthy traffic: no webhook delivered</td><td><span class="pill pill--ok">pass</span></td></tr>
+<tr class="is-ok"><td><code>AL1c</code></td><td>exactly 4 failures (== threshold, not more): both alerts stay OK</td><td><span class="pill pill--ok">pass</span></td></tr>
+<tr class="is-ok"><td><code>AL1d</code></td><td>exactly 4 failures: no webhook delivered</td><td><span class="pill pill--ok">pass</span></td></tr>
+<tr class="is-ok"><td><code>AL2a</code></td><td>failure burst: both alerts reach state ALERT</td><td><span class="pill pill--ok">pass</span></td></tr>
+<tr class="is-ok"><td><code>AL2b</code></td><td>failure burst: a firing (ALERT) webhook delivery arrived for each alert</td><td><span class="pill pill--ok">pass</span></td></tr>
+<tr class="is-ok"><td><code>AL2c</code></td><td>the value in each firing notification is above the threshold and no larger than what was sent (equal when the burst fits one 1-minute window)</td><td><span class="pill pill--ok">pass</span></td></tr>
+<tr class="is-ok"><td><code>AL2d</code></td><td>the counts in the firing notifications add up to exactly what was sent</td><td><span class="pill pill--ok">pass</span></td></tr>
+<tr class="is-ok"><td><code>AL3a</code></td><td>after the failures stop: both alerts return to OK</td><td><span class="pill pill--ok">pass</span></td></tr>
+<tr class="is-ok"><td><code>AL3b</code></td><td>a resolve (OK) webhook delivery arrived for each alert</td><td><span class="pill pill--ok">pass</span></td></tr>
+        </tbody>
+      </table>
+      </div>
+      <p class="src">Source: <code>stack/verify/alerts.py</code>, run <code>alerts-195117</code>, captured 2026-10-03T14:20:33Z. 11 of 11 checks passed.</p>
+    </div>
+    <p>The boundary check is the one that can fail for the right reason. With the wrong threshold type, exactly four failures would send a notification and the check that no notification arrived would fail. The suite was also checked against deliberately wrong alert settings (unreachable thresholds and the <code>&gt;=</code> type), according to the project notes. Those runs are not part of the captured report, so this page does not show them.</p>
+  </section>
+
+  <section aria-labelledby="blind">
+    <h2 id="blind">What an alert evaluation cannot see</h2>
+    <ul>
+      <li><strong>Rows that arrive after :00.</strong> They are not counted by any evaluation, so a burst at the end of a minute can pass unnoticed.</li>
+      <li><strong>Failures split across windows.</strong> The windows are fixed minutes, so the count resets at every :00.</li>
+      <li><strong>Anything the query does not count.</strong> The tile alert counts server spans of <code>web</code> with error status, and the log alert counts ERROR lines. A slow response with status 200 is neither.</li>
+      <li><strong>A failed notification.</strong> The tests check that the receiver got the posts. They do not show what happens if a real destination is unreachable.</li>
+    </ul>
+    <aside class="caveat"><p><strong>Open limit.</strong> The blind spot for late rows is a property of how HyperDX evaluates, observed and documented in this project, and it is listed with the other limits in module 11. If alerts must not miss late data, the alert query or the window needs a delay allowance that this setup does not have.</p></aside>
+  </section>
+
+  <section class="quiz" data-quiz aria-labelledby="quiz-h">
+    <h2 id="quiz-h">Check your understanding</h2>
+    <fieldset class="q" data-answer="b">
+      <legend>In one minute two requests to <code>/chain-fail</code> and two to <code>/error</code> arrive, and nothing else fails. All of the data is in ClickHouse before :00. Which alerts fire?</legend>
+      <label class="opt"><input type="radio" name="q1" value="a"><span>Neither, because four failed requests equals the threshold of 4.<span class="why">The two alerts count different things, so check how many records one failing request produces for each.</span></span></label>
+      <label class="opt"><input type="radio" name="q1" value="b"><span>Only the ERROR-log alert: six log lines against a threshold of 4.<span class="why">Six lines exceed 4, while four failed requests only equal it under the exclusive comparison.</span></span></label>
+      <label class="opt"><input type="radio" name="q1" value="c"><span>Both, because each failing request adds one count to each of the two alerts.<span class="why">A request is not counted the same way by both alerts, so revisit what each alert's query counts.</span></span></label>
+      <p class="feedback" role="status" aria-live="polite"></p>
+    </fieldset>
+    <fieldset class="q" data-answer="c">
+      <legend>A job fails 40 requests at second 57 of a minute, and the data is queryable at second 62. What do the alerts do?</legend>
+      <label class="opt"><input type="radio" name="q2" value="a"><span>They fire at the next evaluation, which includes the rows that arrived late in that minute.<span class="why">Each evaluation looks at the minute that just ended, so revisit which minute the late rows belong to.</span></span></label>
+      <label class="opt"><input type="radio" name="q2" value="b"><span>They fire at :00, because 40 failures are far above the threshold of 4 whatever the delay.<span class="why">The count depends on which rows are in ClickHouse at :00, so look at when these arrive.</span></span></label>
+      <label class="opt"><input type="radio" name="q2" value="c"><span>Neither fires for that minute, and the rows never show up in any alert's count.<span class="why">The evaluation at :00 saw none of them, and the next one covers a different minute.</span></span></label>
+      <p class="feedback" role="status" aria-live="polite"></p>
+    </fieldset>
+    <fieldset class="q" data-answer="a">
+      <legend>Someone provisions an alert named "above 4" with the threshold type <code>above</code> and sends exactly four failures in one minute. What happens, and why?</legend>
+      <label class="opt"><input type="radio" name="q3" value="a"><span>It fires, because that type means count greater than or equal to the threshold.<span class="why">The type, not the name, sets the comparison, so exactly the threshold fires.</span></span></label>
+      <label class="opt"><input type="radio" name="q3" value="b"><span>It stays quiet, because the name says above 4 and four is not above four.<span class="why">The type decides the comparison and the name does not, so revisit what each type means.</span></span></label>
+      <label class="opt"><input type="radio" name="q3" value="c"><span>It fires only if the four failures are split over two one-minute windows.<span class="why">Windows are fixed minutes and the comparison applies to each one, so splitting does not change the rule.</span></span></label>
+      <p class="feedback" role="status" aria-live="polite"></p>
+    </fieldset>
+    <p class="score" aria-live="polite"></p>
+    <p class="gate" hidden>All correct. You have finished the Using it track. Continue to module 7 if you also run the platform, or return to the course home.</p>
+  </section>
+
+  <nav class="pager" aria-label="Module navigation">
+    <a href="05-finding-your-data.html">Previous: Finding your data</a>
+    <a class="next" href="07-concepts.html">Next: Concepts</a>
+  </nav>
+</main>
+<script src="../assets/quiz.js" defer></script>
+<script src="../assets/course.js" defer></script>
+<script src="../assets/sim-alert.js" defer></script>
+</body>
+</html>

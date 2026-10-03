@@ -1,0 +1,54 @@
+[package]
+name = "clickhouse-ingestor"
+version.workspace = true
+edition.workspace = true
+description = "Reusable Rust runtime that consumes OpenData Buffer batches and writes them into ClickHouse"
+license = "MIT"
+repository = "https://github.com/opendata-oss/opendata-contrib"
+
+[lib]
+name = "clickhouse_ingestor"
+path = "src/lib.rs"
+
+[[bin]]
+name = "clickhouse-ingestor"
+path = "src/bin/clickhouse_ingestor.rs"
+
+[features]
+default = []
+
+[dependencies]
+anyhow.workspace = true
+async-trait = "0.1"
+axum.workspace = true
+buffer.workspace = true
+bytes.workspace = true
+clap = { workspace = true }
+common.workspace = true
+figment.workspace = true
+futures.workspace = true
+hex.workspace = true
+metrics.workspace = true
+metrics-exporter-prometheus.workspace = true
+prometheus-client.workspace = true
+opendata-ingest-clickhouse = { path = "../../plugins/opendata-ingest-clickhouse" }
+opendata-ingest-otel = { path = "../../plugins/opendata-ingest-otel" }
+opendata-ingest-runtime = { path = "../../runtime/opendata-ingest-runtime" }
+opentelemetry-proto = { workspace = true }
+prost.workspace = true
+reqwest.workspace = true
+serde.workspace = true
+serde_json.workspace = true
+serde_yaml.workspace = true
+sha2.workspace = true
+slatedb.workspace = true
+thiserror.workspace = true
+tokio.workspace = true
+tokio-util.workspace = true
+tracing.workspace = true
+tracing-subscriber.workspace = true
+urlencoding.workspace = true
+
+[dev-dependencies]
+tempfile.workspace = true
+tokio = { workspace = true, features = ["test-util"] }

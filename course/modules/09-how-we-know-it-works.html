@@ -1,0 +1,197 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>How we know it works</title>
+<link rel="stylesheet" href="../assets/tokens.css">
+<link rel="stylesheet" href="../assets/theme.css">
+<link rel="stylesheet" href="../assets/components.css">
+<link rel="stylesheet" href="../assets/local.css">
+</head>
+<body data-module="m09">
+<nav class="site-bar" aria-label="Course"><a class="brand" href="../index.html">Observability course</a></nav>
+<main>
+  <header>
+    <p class="crumbs">Running it · module 3 of 5</p>
+    <h1>How we know it works</h1>
+    <p class="lede">How a test with known expected results proves the pipeline, how the tests were tested, and what each injected failure does to the data path.</p>
+  </header>
+
+  <section class="goals" aria-labelledby="goals">
+    <h2 id="goals">After this module you can</h2>
+    <ul>
+      <li>explain how ground truth makes a test meaningful,</li>
+      <li>explain why the test suite itself is tested, and</li>
+      <li>predict what each failure does to the data path.</li>
+    </ul>
+  </section>
+
+  <section aria-labelledby="gt">
+    <h2 id="gt">Ground truth</h2>
+    <p>A test of a telemetry pipeline needs to know what should have arrived, and it cannot learn that from the pipeline. The load generator sends a fixed request mix to the test application and records, for each endpoint, how many requests it sent, the status it expects, and the exact number of spans and log lines each request must produce. This record is the <dfn>ground truth</dfn>, and the checks compare ClickHouse and HyperDX with it.</p>
+    <div class="evid">
+      <table class="data"><thead><tr><th scope="col">Endpoint</th><th scope="col" class="num">Requests</th><th scope="col" class="num">Status</th><th scope="col" class="num">Expected spans</th><th scope="col" class="num">Expected logs</th><th scope="col" class="num">Expected 5xx</th></tr></thead><tbody>
+<tr><td><code>/ok</code></td><td class="num">100</td><td class="num">200</td><td class="num">100</td><td class="num">100</td><td class="num">0</td></tr>
+<tr><td><code>/slow</code></td><td class="num">20</td><td class="num">200</td><td class="num">20</td><td class="num">20</td><td class="num">0</td></tr>
+<tr><td><code>/error</code></td><td class="num">20</td><td class="num">500</td><td class="num">20</td><td class="num">20</td><td class="num">20</td></tr>
+<tr><td><code>/exception</code></td><td class="num">5</td><td class="num">500</td><td class="num">5</td><td class="num">5</td><td class="num">5</td></tr>
+<tr><td><code>/chain</code></td><td class="num">50</td><td class="num">200</td><td class="num">200</td><td class="num">100</td><td class="num">0</td></tr>
+<tr><td><code>/chain-fail</code></td><td class="num">10</td><td class="num">502</td><td class="num">30</td><td class="num">20</td><td class="num">10</td></tr>
+<tr><td><code>/checkout</code></td><td class="num">20</td><td class="num">200</td><td class="num">440</td><td class="num">40</td><td class="num">0</td></tr>
+<tr><th scope="row">Total</th><td class="num">225</td><td></td><td class="num">815</td><td class="num">305</td><td class="num">35</td></tr>
+</tbody></table>
+      <p class="src">Source: the load generator's contract for run <code>course-evidence-002020</code>, from <code>evidence/ground-truth.json</code>. Expected availability for this run is 84.4%: 190 of 225 server spans are not 5xx.</p>
+    </div>
+    <p>The numbers are exact, so a single lost span or an extra log line fails a check. They are known without reading telemetry: <code>/chain</code> produces 4 spans and 2 logs by construction, and the generator counts how many times it called it. If the checks derived expectations from ClickHouse, a pipeline that dropped 5% of the data would still agree with itself.</p>
+  </section>
+
+  <section aria-labelledby="families">
+    <h2 id="families">The check families</h2>
+    <p>The verifier, <code>stack/verify/verify.py</code>, runs 32 checks in five families. Each family asks a different question about the same run.</p>
+    <div class="evid">
+      <table class="data"><thead><tr><th scope="col">Family</th><th scope="col" class="num">Checks</th><th scope="col">Example</th></tr></thead><tbody>
+<tr><td><code>G</code> Ground truth</td><td class="num">1</td><td><code>G1</code> ground truth: requests / spans / logs / 5xx / availability match the contract</td></tr>
+<tr><td><code>A</code> Pipeline</td><td class="num">11</td><td><code>A2</code> spans: count per (service, kind, status, name) equals contract<br><code>A4t</code> otel_traces: no duplicate rows (raw == FINAL == unique provenance keys)</td></tr>
+<tr><td><code>B</code> Tracing</td><td class="num">6</td><td><code>B5</code> /chain: all 50 traces have the exact web-&gt;client-&gt;backend span chain (no errors)<br><code>B8</code> every x-trace-id returned to the client exists in ClickHouse</td></tr>
+<tr><td><code>D</code> HyperDX</td><td class="num">13</td><td><code>D13b</code> HyperDX chart: availability (non-5xx / total) equals ground truth<br><code>D14a</code> error list (failed web spans) = exactly the /error, /exception, /chain-fail requests</td></tr>
+<tr><td><code>E</code> Latency</td><td class="num">1</td><td><code>E16</code> End-to-end latency for every row: 99th percentile within 15 s.</td></tr>
+</tbody></table>
+      <p class="src">Source: run <code>course-evidence-002020</code> in <code>evidence/verify-report.json</code>, captured 2026-10-03T14:20:33Z. All 32 checks passed.</p>
+    </div>
+    <p>The pipeline checks compare counts per service, severity, span kind and route with the ground truth. The duplicate checks require the raw row count, the <code>FINAL</code> row count and the number of unique provenance keys to be equal, which is how module 7's deduplication is tested. The HyperDX checks ask HyperDX's own API, so they test what a user would see and not only what is stored.</p>
+  </section>
+
+  <section aria-labelledby="negative">
+    <h2 id="negative">Testing the tests</h2>
+    <p>A check that has only ever passed has not been shown to detect anything. The self-test, <code>stack/verify/selftest.py</code>, runs a clean verification, then deliberately damages the stored data and requires the right checks to fail. All 8 corruptions were detected.</p>
+    <div class="evid">
+      <table class="data"><thead><tr><th scope="col">Corruption</th><th scope="col">Must fail</th><th scope="col">Failed</th></tr></thead><tbody>
+<tr class="is-ok"><td>delete one /ok span</td><td>A2, D12, D13a</td><td>A2, B8, D12, D13a, D13b, D13d, D15</td></tr>
+<tr class="is-ok"><td>flip one /ok span to Error</td><td>A2, D13b, D14a</td><td>A2, D13b, D13e, D14a, D14c</td></tr>
+<tr class="is-ok"><td>duplicate one span row (new provenance-independent copy)</td><td>A4t</td><td>A2, A4t, D12, D13a, D13b, D13d, D15</td></tr>
+<tr class="is-ok"><td>detach a backend span from its parent</td><td>B5</td><td>B5</td></tr>
+<tr class="is-ok"><td>move one /checkout function span under the wrong parent</td><td>B9</td><td>B9</td></tr>
+<tr class="is-ok"><td>delete one log record</td><td>A1, D12</td><td>A1, B6a, D12, D15</td></tr>
+<tr class="is-ok"><td>inflate web app.requests{/ok} counter values</td><td>A3a</td><td>A3a</td></tr>
+<tr class="is-ok"><td>corrupt the /slow latency histogram count</td><td>A3c</td><td>A3c</td></tr>
+      </tbody></table>
+      <p class="src">Source: <code>evidence/selftest.json</code>, captured 2026-10-03T14:20:33Z. Every check in the "Must fail" column also appears in "Failed", and other checks failed too.</p>
+    </div>
+    <p>Negative testing found three defects in the verifier itself, each a way for the suite to report success when it should not have. They are lessons for any test suite:</p>
+    <ul>
+      <li><strong>An early exit hid other checks.</strong> The run stopped at the first failure, so later checks never ran and a broken run looked narrower than it was. Run every check and report all results.</li>
+      <li><strong>A crash was masked by a stale report.</strong> When the verifier crashed, an older report was still on disk and was read as the result. A run must clear or ignore any output it did not produce.</li>
+      <li><strong>Reusing a run id silently tripled every count.</strong> Data from earlier runs with the same id was counted again. A test must refuse to start when its precondition is unsafe, and module 10 comes back to this.</li>
+    </ul>
+  </section>
+
+  <section aria-labelledby="chaos">
+    <h2 id="chaos">Failure injection</h2>
+    <p>The failure tests in <code>stack/verify/chaos.py</code> send load, break one component part-way through, wait for the system to settle, and run the same count and duplicate checks. A failure that loses or repeats data fails them.</p>
+    <div class="evid">
+      <table class="data"><thead><tr><th scope="col">Failure injected</th><th scope="col" class="num">Checks passed</th></tr></thead><tbody>
+<tr class="is-ok"><td>All ingestors killed (SIGKILL) during load</td><td class="num">17 of 17</td></tr>
+<tr class="is-ok"><td>All ingestors restarted during load</td><td class="num">17 of 17</td></tr>
+<tr class="is-ok"><td>ClickHouse stopped for 20 s during load</td><td class="num">17 of 17</td></tr>
+<tr class="is-ok"><td>Object store stopped for 8 s during load</td><td class="num">17 of 17</td></tr>
+<tr class="is-ok"><td>Collector restarted while idle, then a full verification</td><td class="num">18 of 18</td></tr>
+<tr class="is-ok"><td>Garbage entries written into all three queues during load</td><td class="num">17 of 17</td></tr>
+<tr class="is-ok"><td>Object store stopped for 30 s during load</td><td class="num">17 of 17</td></tr>
+      </tbody></table>
+      <p class="src">Source: <code>evidence/chaos.json</code>, captured 2026-10-03T14:20:33Z.</p>
+    </div>
+    <aside class="note"><p><strong>Replays depend on timing.</strong> Killing an ingestor only causes a replay if the kill lands between an insert and its acknowledgement. In the three attempts captured for this course ClickHouse dropped 1, 0, 0 replayed inserts (the count varies from run to run). Every attempt ended with exact counts, so the evidence is that nothing was lost or duplicated, and a single run may see no replay at all.</p></aside>
+  </section>
+
+  <section aria-labelledby="explorer">
+    <h2 id="explorer">Data-flow explorer</h2>
+    <p>The explorer is a model of the pipeline, with one step representing one second and the applications producing 10 rows a second. In a healthy run the ingestor empties the queue within the same second, so the queue reads 0 now while the running total under Buffer shows how many rows have been written to it. Stop the ingestor, step time, and watch the queue build up; stop another stage and watch where the rows wait. The behaviour follows the documented design and the failure tests above. The rates are illustrative, and the model does not call any real service.</p>
+    <div class="sim" id="flow-panel">
+      <figure>
+        <svg viewBox="0 0 800 170" role="img" aria-labelledby="flow-t flow-d">
+<title id="flow-t">Data-flow explorer pipeline</title>
+<desc id="flow-d">Applications send rows to the collector, which writes them to the Buffer on S3. The ingestor reads the Buffer and inserts into ClickHouse. The numbers under each stage update as you step time.</desc>
+<defs><marker id="flow-arr" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto"><path class="d-arrowhead" d="M0 0 L10 5 L0 10 z"/></marker></defs>
+<path class="d-edge d-edge--live" id="flow-edge-live" d="M135 55 L168 55" marker-end="url(#flow-arr)"/>
+<path class="d-edge" d="M295 55 L328 55" marker-end="url(#flow-arr)"/>
+<path class="d-edge" d="M455 55 L488 55" marker-end="url(#flow-arr)"/>
+<path class="d-edge" d="M615 55 L648 55" marker-end="url(#flow-arr)"/>
+<rect class="d-node" id="flow-apps" x="10" y="20" width="125" height="70" rx="4"/><text class="d-text" x="72" y="42">Apps</text><text class="d-label d-text" id="flow-t-apps" x="72" y="68">0</text><text class="d-tick" x="72" y="112" text-anchor="middle">rows produced</text>
+<rect class="d-node" id="flow-collector" x="170" y="20" width="125" height="70" rx="4"/><text class="d-text" x="232" y="42">Collector</text><text class="d-label d-text" id="flow-t-collector" x="232" y="68">0</text><text class="d-tick" x="232" y="112" text-anchor="middle">rows in memory</text>
+<rect class="d-node" id="flow-buffer" x="330" y="20" width="125" height="70" rx="4"/><text class="d-text" x="392" y="42">Buffer (S3)</text><text class="d-label d-text" id="flow-t-buffer" x="392" y="68">0</text><text class="d-tick" x="392" y="112" text-anchor="middle">rows queued now</text>
+<rect class="d-node" id="flow-ingestor" x="490" y="20" width="125" height="70" rx="4"/><text class="d-text" x="552" y="42">Ingestor</text><text class="d-label d-text" id="flow-t-ingestor" x="552" y="68">0</text><text class="d-tick" x="552" y="112" text-anchor="middle">state</text>
+<rect class="d-node" id="flow-clickhouse" x="650" y="20" width="125" height="70" rx="4"/><text class="d-text" x="712" y="42">ClickHouse</text><text class="d-label d-text" id="flow-t-clickhouse" x="712" y="68">0</text><text class="d-tick" x="712" y="112" text-anchor="middle">rows stored</text>
+<text class="d-tick" id="flow-t-written" x="392" y="136" text-anchor="middle">0 written in total</text>
+</svg>
+        <figcaption>Rows flow left to right. A stopped stage is drawn with a warning fill and the toggle buttons carry the same state in text.</figcaption>
+      </figure>
+      <p class="controls-row">
+        <button type="button" class="btn" id="flow-b-s3" aria-pressed="false">Stop S3</button>
+        <button type="button" class="btn" id="flow-b-ingestor" aria-pressed="false">Stop ingestor</button>
+        <button type="button" class="btn" id="flow-b-clickhouse" aria-pressed="false">Stop ClickHouse</button>
+        <button type="button" class="btn" id="flow-b-traffic" aria-pressed="false">Stop traffic</button>
+      </p>
+      <p class="controls-row">
+        <button type="button" class="btn" id="flow-b-kill">Kill ingestor mid-commit</button>
+        <button type="button" class="btn" id="flow-b-crash">Crash collector</button>
+        <button type="button" class="btn" id="flow-b-step1">Step 1 s</button>
+        <button type="button" class="btn" id="flow-b-step10">Step 10 s</button>
+        <button type="button" class="btn" id="flow-b-step60">Step 60 s</button>
+        <button type="button" class="btn" id="flow-b-reset">Reset</button>
+      </p>
+      <p class="out" id="flow-summary" aria-live="polite">Time 0 s. Press a step button to start.</p>
+      <p class="readout" id="flow-notes" aria-live="polite"></p>
+      <table class="steps"><thead><tr><th scope="col">Time (s)</th><th scope="col">Action</th><th scope="col">In collector memory</th><th scope="col">Queue depth</th><th scope="col">In ClickHouse</th><th scope="col">Dropped as duplicates</th><th scope="col">Lost</th></tr></thead><tbody id="flow-history"></tbody></table>
+    </div>
+    <table class="data">
+      <thead><tr><th scope="col">Fault</th><th scope="col">What happens to the data</th><th scope="col">Tested?</th></tr></thead>
+      <tbody>
+        <tr><td>Object store down for less than the retry window</td><td>The collector holds the batches and retries the write, then delivers them. Nothing was lost in the tested outages of 8 s and 30 s. Outages between 30 s and 5 minutes are untested (see module 11).</td><td>Yes, for 8 s and 30 s under load.</td></tr>
+        <tr><td>Object store down for more than 5 minutes</td><td>The retry limit is reached and the batch is dropped (a modelled case).</td><td>No. The default retry window is documented, and the model extrapolates from it.</td></tr>
+        <tr><td>Ingestor stopped</td><td>Rows wait in the Buffer and are inserted after the restart. Delay, no loss.</td><td>Yes, kill and restart under load.</td></tr>
+        <tr><td>ClickHouse down</td><td>The ingestors retry and the queue grows. Delay, no loss.</td><td>Yes, 20 s under load.</td></tr>
+        <tr><td>Ingestor killed between insert and acknowledge</td><td>The range is read again after the restart and ClickHouse drops the repeat by token.</td><td>Yes, but a replay happens only when the timing lines up.</td></tr>
+        <tr><td>Collector crash</td><td>The batch in its memory is lost. This is a known loss case and a stated limit.</td><td>Not under load: the collector is restarted only while idle.</td></tr>
+      </tbody>
+    </table>
+    <aside class="caveat"><p><strong>The collector crash is a real loss.</strong> The collector acknowledges the application before a batch reaches the Buffer, so what it holds in memory when it dies is gone. Module 11 lists this with the other open limits. Without JavaScript, the table above describes each fault.</p></aside>
+  </section>
+
+  <section class="quiz" data-quiz aria-labelledby="quiz-h">
+    <h2 id="quiz-h">Check your understanding</h2>
+    <fieldset class="q" data-answer="b">
+      <legend>A verifier derived its expected span counts by counting spans in ClickHouse, then compared ClickHouse with that count. The pipeline silently dropped 5% of the spans. What would the check report?</legend>
+      <label class="opt"><input type="radio" name="q1" value="a"><span>A failure, because the dropped spans make the two counts differ by about 5%.<span class="why">Both sides of the comparison come from the same stored data, so the loss is on both sides. Revisit where the ground truth comes from.</span></span></label>
+      <label class="opt"><input type="radio" name="q1" value="b"><span>A pass, because the expectation was taken from the data it was checking.<span class="why">An expectation that is read back from the system cannot disagree with it, and the loss stays invisible.</span></span></label>
+      <label class="opt"><input type="radio" name="q1" value="c"><span>A failure, but only in the duplicate checks, which compare raw rows with unique keys.<span class="why">Duplicate checks compare raw rows with unique keys and say nothing about missing rows. Revisit what each check family compares.</span></span></label>
+      <p class="feedback" role="status" aria-live="polite"></p>
+    </fieldset>
+    <fieldset class="q" data-answer="a">
+      <legend>ClickHouse is stopped for 20 seconds while load continues, and then started again. What do you observe?</legend>
+      <label class="opt"><input type="radio" name="q2" value="a"><span>The queue depth rises during the outage and then falls, and the final counts equal what was sent.<span class="why">The Buffer absorbs the backlog and the ingestors insert it after the restart, which is what the exact counts show.</span></span></label>
+      <label class="opt"><input type="radio" name="q2" value="b"><span>The ingestors drop the rows they cannot insert, so the final counts are short by the outage's share.<span class="why">The ingestor acknowledges a range only after ClickHouse accepts it, so a failed insert leaves the range in the queue. Revisit where the data waits.</span></span></label>
+      <label class="opt"><input type="radio" name="q2" value="c"><span>The collector stops accepting data because ClickHouse is unreachable and the applications start failing.<span class="why">The collector writes to the Buffer and is not connected to ClickHouse. Revisit the data path.</span></span></label>
+      <p class="feedback" role="status" aria-live="polite"></p>
+    </fieldset>
+    <fieldset class="q" data-answer="b">
+      <legend>Why does the failure test restart the collector only while it is idle, and not under load?</legend>
+      <label class="opt"><input type="radio" name="q3" value="a"><span>A collector restart under load corrupts the manifest, so the queue cannot be read afterwards by an ingestor.<span class="why">The manifest is updated with compare-and-set and does not depend on the collector staying up. Revisit the module 7 sequence.</span></span></label>
+      <label class="opt"><input type="radio" name="q3" value="b"><span>Under load a crash would lose batches held in memory, so exact counts would fail for another reason.<span class="why">Batches in memory are not yet durable, and the exact-count checks would then fail for a known limit.</span></span></label>
+      <label class="opt"><input type="radio" name="q3" value="c"><span>The collector cannot restart while it is receiving data, because the receiver port stays locked.<span class="why">Restarting is possible at any time, and the issue is what happens to data in flight. Revisit the loss case in the explorer.</span></span></label>
+      <p class="feedback" role="status" aria-live="polite"></p>
+    </fieldset>
+    <p class="score" aria-live="polite"></p>
+    <p class="gate" hidden>All correct. Continue to module 10, what broke and what we learned.</p>
+  </section>
+
+  <nav class="pager" aria-label="Module navigation">
+    <a href="08-architecture-and-setup.html">Previous: Architecture and setup</a>
+    <a class="next" href="10-what-broke.html">Next: What broke and what we learned</a>
+  </nav>
+</main>
+<script src="../assets/quiz.js" defer></script>
+<script src="../assets/course.js" defer></script>
+<script src="../assets/sim-dataflow.js" defer></script>
+</body>
+</html>

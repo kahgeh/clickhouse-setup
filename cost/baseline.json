@@ -1,0 +1,19 @@
+{
+  "_note": "Anonymised from the user's Cost Explorer view (USD). September covers the first 25 days only. Internal names removed.",
+  "monthly_totals": {"Jun": 4739, "Jul": 11358, "Aug": 9765, "Sep_first_25_days": 15466},
+  "sep_first_25_days": {
+    "Logs Insights scanning": 12343,
+    "Log ingest": 794,
+    "Prometheus ingest (AMP)": 586,
+    "Prometheus query (AMP)": 513,
+    "CloudWatch custom metrics": 469,
+    "Grafana seats": 291,
+    "CloudWatch GetMetricData": 174,
+    "Everything else (storage, export, alarms, dashboards, tracing, streaming)": 296
+  },
+  "days_in_period": 25,
+  "fixed_items": ["Grafana seats"],
+  "scanned_tb_30_days": 2384,
+  "scan_price_usd_per_gb": {"logs_insights_sydney": 0.0067, "log_analytics_sydney": 0.005,
+                            "source": "AmazonCloudWatch price list, ap-southeast-2, published 2026-09-22"}
+}

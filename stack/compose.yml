@@ -1,0 +1,160 @@
+# Local observability stack: OTLP -> OpenData Buffer (S3) -> ClickHouse <- HyperDX.
+# Everything environment-specific is an env var so the same images/config move to AWS.
+name: obs
+
+x-s3-env: &s3-env
+  AWS_REGION: us-east-1
+  AWS_ACCESS_KEY_ID: ${S3_ACCESS_KEY:-localadmin}
+  AWS_SECRET_ACCESS_KEY: ${S3_SECRET_KEY:-localadmin-secret}
+  # Local only: point the Rust object_store crate at RustFS. Unset on AWS.
+  AWS_ENDPOINT: ${S3_ENDPOINT:-http://s3:9000}
+  AWS_ALLOW_HTTP: "true"
+  AWS_VIRTUAL_HOSTED_STYLE_REQUEST: "false"
+
+x-ingestor: &ingestor
+  image: ${INGESTOR_IMAGE:-localhost/sre-ingestor:dev}
+  restart: unless-stopped
+  depends_on:
+    s3-init:
+      condition: service_completed_successfully
+    clickhouse:
+      condition: service_healthy
+  environment: &ingestor-env
+    <<: *s3-env
+    INGESTOR__CLICKHOUSE__USER: ${CH_INGEST_USER:-ingestor}
+    INGESTOR__CLICKHOUSE__PASSWORD: ${CH_INGEST_PASSWORD:-ingestor}
+    RUST_LOG: info,opendata_ingest_runtime=info,clickhouse_ingestor=info
+
+services:
+  # S3-compatible store. RustFS replaces MinIO (its images were removed in 2026).
+  # Must support S3 conditional writes: Buffer's manifest relies on them.
+  s3:
+    image: docker.io/rustfs/rustfs:1.0.1
+    command: ["/data"]
+    environment:
+      RUSTFS_ACCESS_KEY: ${S3_ACCESS_KEY:-localadmin}
+      RUSTFS_SECRET_KEY: ${S3_SECRET_KEY:-localadmin-secret}
+      RUSTFS_SERVER_DOMAINS: s3:9000
+    networks:
+      default:
+        aliases:
+          # The collector's Go S3 client uses virtual-hosted-style bucket hosts.
+          - observability-buffer.s3
+    ports: ["9000:9000", "9001:9001"]
+    volumes: ["s3-data:/data"]
+
+  s3-init:
+    image: docker.io/amazon/aws-cli:2.31.0
+    depends_on: [s3]
+    environment:
+      AWS_REGION: us-east-1
+      AWS_ACCESS_KEY_ID: ${S3_ACCESS_KEY:-localadmin}
+      AWS_SECRET_ACCESS_KEY: ${S3_SECRET_KEY:-localadmin-secret}
+    entrypoint: ["/bin/sh", "-c"]
+    command:
+      - |
+        for i in $$(seq 1 60); do
+          aws --endpoint-url http://s3:9000 s3api create-bucket --bucket observability-buffer >/dev/null 2>&1 \
+            || aws --endpoint-url http://s3:9000 s3api head-bucket --bucket observability-buffer >/dev/null 2>&1 \
+            && { echo "bucket observability-buffer ready"; exit 0; }
+          sleep 1
+        done
+        echo "bucket creation failed" >&2; exit 1
+
+  clickhouse:
+    image: docker.io/clickhouse/clickhouse-server:24.10.1.2812
+    ulimits: { nofile: { soft: 262144, hard: 262144 } }
+    environment:
+      CLICKHOUSE_USER: ${CH_INGEST_USER:-ingestor}
+      CLICKHOUSE_PASSWORD: ${CH_INGEST_PASSWORD:-ingestor}
+      CLICKHOUSE_DEFAULT_ACCESS_MANAGEMENT: 1
+    ports: ["8123:8123"]
+    volumes:
+      - clickhouse-data:/var/lib/clickhouse
+      - ./clickhouse:/docker-entrypoint-initdb.d:ro
+    healthcheck:
+      test: ["CMD", "wget", "--spider", "-q", "http://localhost:8123/ping"]
+      interval: 2s
+      timeout: 2s
+      retries: 60
+
+  otel-collector:
+    # Built from ../collector: upstream opendata exporter v0.5.0 + a local patch adding
+    # the traces signal (upstream supports only logs and metrics). Multi-arch capable.
+    image: ${COLLECTOR_IMAGE:-localhost/sre-collector:dev}
+    depends_on:
+      s3-init:
+        condition: service_completed_successfully
+    environment:
+      <<: *s3-env
+      BUFFER_BUCKET: observability-buffer
+      S3_ENDPOINT: ${S3_ENDPOINT:-http://s3:9000}
+    restart: unless-stopped
+    ports: ["4317:4317", "4318:4318"]
+    volumes: ["./config/otel-collector.yaml:/etc/otelcol/config.yaml:ro"]
+    command: ["--config=/etc/otelcol/config.yaml"]
+
+  ingestor-logs:
+    <<: *ingestor
+    ports: ["9091:9090"]
+    volumes: ["./config/ingestor-logs.yaml:/etc/clickhouse-ingestor/config.yaml:ro"]
+    command: ["--config=/etc/clickhouse-ingestor/config.yaml"]
+
+  ingestor-traces:
+    <<: *ingestor
+    ports: ["9092:9090"]
+    volumes: ["./config/ingestor-traces.yaml:/etc/clickhouse-ingestor/config.yaml:ro"]
+    command: ["--config=/etc/clickhouse-ingestor/config.yaml"]
+
+  ingestor-metrics:
+    <<: *ingestor
+    ports: ["9093:9090"]
+    volumes: ["./config/ingestor-metrics.yaml:/etc/clickhouse-ingestor/config.yaml:ro"]
+    command: ["--config=/etc/clickhouse-ingestor/config.yaml"]
+
+  mongo:
+    image: docker.io/library/mongo:7.0
+    volumes: ["mongo-data:/data/db"]
+
+  hyperdx:
+    image: docker.hyperdx.io/hyperdx/hyperdx:2.40.0
+    depends_on: [mongo, clickhouse]
+    environment:
+      MONGO_URI: mongodb://mongo:27017/hyperdx
+      FRONTEND_URL: http://localhost:8080
+    ports: ["8080:8080", "8000:8000"]   # UI, external API v2
+
+  # Records alert webhooks from HyperDX so alert delivery can be verified (verify/alerts.py).
+  webhook-sink:
+    image: docker.io/library/python:3.13-slim
+    command: ["python", "/sink.py"]
+    volumes: ["./webhook-sink/sink.py:/sink.py:ro"]
+    ports: ["8089:8089"]
+
+  # ---- test application (docker compose --profile app up -d) ----
+  backend:
+    image: ${APP_IMAGE:-localhost/sre-app:dev}
+    profiles: ["app"]
+    command: ["backend"]
+    environment: &app-env
+      OTEL_EXPORTER_OTLP_ENDPOINT: http://otel-collector:4317
+      OTEL_METRIC_EXPORT_INTERVAL_MS: "5000"
+      SERVICE_NAME: backend
+    depends_on: [otel-collector]
+    ports: ["50051:50051"]
+
+  web:
+    image: ${APP_IMAGE:-localhost/sre-app:dev}
+    profiles: ["app"]
+    command: ["web"]
+    environment:
+      <<: *app-env
+      SERVICE_NAME: web
+      BACKEND_URL: http://backend:50051
+    depends_on: [backend]
+    ports: ["8081:8081"]
+
+volumes:
+  s3-data:
+  clickhouse-data:
+  mongo-data:

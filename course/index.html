@@ -1,0 +1,71 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Cost-efficient observability, proven</title>
+<link rel="stylesheet" href="assets/tokens.css">
+<link rel="stylesheet" href="assets/theme.css">
+<link rel="stylesheet" href="assets/components.css">
+<link rel="stylesheet" href="assets/local.css">
+</head>
+<body data-module="index">
+<nav class="site-bar" aria-label="Course"><a class="brand" href="index.html">Observability course</a></nav>
+<main>
+  <header>
+    <p class="meta">Course · logs, metrics and traces</p>
+    <h1>Cost-efficient observability, proven</h1>
+    <p class="lede">A course on a logs, metrics and traces platform built from OpenTelemetry, OpenData Buffer, ClickHouse and HyperDX: the problem it addresses, how it works, how it was tested, and what the evidence does and does not show.</p>
+  </header>
+
+  <section aria-labelledby="how">
+    <h2 id="how">How to use this course</h2>
+    <p>Start with the Story track, which takes about 20 minutes and is written for everyone. Then continue into the track that matches your work. Each module opens with what you will be able to do, explains one idea with a figure or an interactive you can change, shows real evidence captured from this stack, and ends with a short quiz. The quiz explains every wrong answer, so use it to check your reasoning.</p>
+    <progress class="progress" value="0" max="11" aria-label="Modules opened"></progress>
+    <p class="tag" data-progress-label>0 of 11 modules opened</p>
+  </section>
+
+  <section aria-labelledby="tracks">
+    <h2 id="tracks">Tracks</h2>
+    <div class="track-grid">
+      <article class="track" aria-labelledby="t-story">
+        <h3 id="t-story">Story</h3>
+        <p class="for">Everyone. About 20 minutes.</p>
+        <ul class="mods">
+          <li data-module="m01"><span class="num">01</span><a href="modules/01-problem-and-outcome.html">The problem and the outcome</a></li>
+          <li data-module="m02"><span class="num">02</span><a href="modules/02-platform-in-one-picture.html">The platform in one picture</a></li>
+          <li data-module="m03"><span class="num">03</span><a href="modules/03-evidence-it-works.html">The evidence it works</a></li>
+        </ul>
+      </article>
+      <article class="track" aria-labelledby="t-use">
+        <h3 id="t-use">Using it</h3>
+        <p class="for">Developers who send telemetry and read it.</p>
+        <ul class="mods">
+          <li data-module="m04"><span class="num">04</span><a href="modules/04-sending-telemetry.html">Sending telemetry</a></li>
+          <li data-module="m05"><span class="num">05</span><a href="modules/05-finding-your-data.html">Finding your data</a></li>
+          <li data-module="m06"><span class="num">06</span><a href="modules/06-alerts.html">Alerts</a></li>
+        </ul>
+      </article>
+      <article class="track" aria-labelledby="t-run">
+        <h3 id="t-run">Running it</h3>
+        <p class="for">Platform and SRE engineers.</p>
+        <ul class="mods">
+          <li data-module="m07"><span class="num">07</span><a href="modules/07-concepts.html">Concepts</a></li>
+          <li data-module="m08"><span class="num">08</span><a href="modules/08-architecture-and-setup.html">Architecture and setup</a></li>
+          <li data-module="m09"><span class="num">09</span><a href="modules/09-how-we-know-it-works.html">How we know it works</a></li>
+          <li data-module="m10"><span class="num">10</span><a href="modules/10-what-broke.html">What broke and what we learned</a></li>
+          <li data-module="m11"><span class="num">11</span><a href="modules/11-limits-tiers-and-aws.html">Limits, tiers and the road to AWS</a></li>
+        </ul>
+      </article>
+    </div>
+  </section>
+
+  <section aria-labelledby="real">
+    <h2 id="real">What is real, and what is not</h2>
+    <p>The test results, logs, database rows and screenshots in this course were captured from the platform running on one laptop, and each carries its source and capture time in <code>evidence/manifest.json</code>. The cost figures are a model: they use AWS list prices and a stated set of assumptions, and no part of the platform has run on AWS.</p>
+    <aside class="caveat"><p><strong>Read the limits.</strong> The platform has not been load-tested at production volume, it has not run against real AWS S3, and the cost comparison depends on engineer time that is assumed. Module 11 lists the open limits found so far.</p></aside>
+  </section>
+</main>
+<script src="assets/course.js" defer></script>
+</body>
+</html>

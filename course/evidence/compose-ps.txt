@@ -1,0 +1,13 @@
+SERVICE            IMAGE                                                 STATUS
+backend            localhost/sre-app:dev                                 Up 21 seconds
+clickhouse         docker.io/clickhouse/clickhouse-server:24.10.1.2812   Up 43 minutes
+hyperdx            docker.hyperdx.io/hyperdx/hyperdx:2.40.0              Up 6 hours
+ingestor-logs      localhost/sre-ingestor:dev                            Up 42 minutes
+ingestor-metrics   localhost/sre-ingestor:dev                            Up 42 minutes
+ingestor-traces    localhost/sre-ingestor:dev                            Up 42 minutes
+mongo              docker.io/library/mongo:7.0                           Up 6 hours
+otel-collector     localhost/sre-collector:dev                           Up 42 minutes
+s3                 docker.io/rustfs/rustfs:1.0.1                         Up 42 minutes
+s3-init            docker.io/amazon/aws-cli:2.31.0                       Exited (0) 21 seconds ago
+web                localhost/sre-app:dev                                 Up 21 seconds
+webhook-sink       docker.io/library/python:3.13-slim                    Up 5 hours

@@ -1,0 +1,10 @@
+[package]
+name = "compat-consumer"
+version = "0.1.0"
+edition = "2024"
+
+[dependencies]
+buffer = { package = "opendata-buffer", version = "0.2.0" }
+common = { package = "opendata-common", version = "0.1.13" }
+tokio = { version = "1", features = ["full"] }
+bytes = "1"

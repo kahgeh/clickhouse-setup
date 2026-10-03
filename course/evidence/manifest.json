@@ -1,0 +1,184 @@
+{
+  "verify-report.json": {
+    "source": "/Users/kahgeh/Dev/p/sre/stack/verify/out/course-evidence-002020/report.json",
+    "command": "python3 stack/verify/verify.py",
+    "captured_at": "2026-10-03T14:20:33Z",
+    "run_id": "course-evidence-002020",
+    "passed": 32,
+    "failed": 0
+  },
+  "selftest.json": {
+    "source": "stack/verify/out/selftest-001407-*",
+    "command": "python3 stack/verify/selftest.py",
+    "captured_at": "2026-10-03T14:20:33Z",
+    "detected": 8,
+    "total": 8
+  },
+  "chaos.json": {
+    "source": "stack/verify/out/chaos-*",
+    "command": "python3 stack/verify/chaos.py",
+    "captured_at": "2026-10-03T14:20:33Z",
+    "scenarios": 7
+  },
+  "alerts-report.json": {
+    "source": "/Users/kahgeh/Dev/p/sre/stack/verify/out/alerts-195117/report.json",
+    "command": "python3 stack/verify/alerts.py",
+    "captured_at": "2026-10-03T14:20:33Z",
+    "run_id": "alerts-195117",
+    "passed": 11
+  },
+  "alert-deliveries.json": {
+    "source": "webhook sink GET /received",
+    "command": "curl localhost:8089/received",
+    "captured_at": "2026-10-03T14:20:34Z",
+    "count": 146
+  },
+  "clickhouse-counts.json": {
+    "source": "ClickHouse otel.*",
+    "command": "SELECT count() FROM each table",
+    "captured_at": "2026-10-03T14:20:34Z"
+  },
+  "trace-sample.json": {
+    "source": "ClickHouse otel.otel_traces / otel_logs",
+    "command": "WHERE TraceId = 'db4b635984efdc74db9c685a6ad2fdaf'",
+    "captured_at": "2026-10-03T14:20:34Z"
+  },
+  "metrics-sample.json": {
+    "source": "ClickHouse otel.otel_metrics_sum",
+    "command": "GROUP BY MetricName",
+    "captured_at": "2026-10-03T14:20:34Z"
+  },
+  "storage.json": {
+    "source": "ClickHouse system.parts",
+    "command": "compressed vs raw per table (SYNTHETIC repetitive test data: not representative)",
+    "captured_at": "2026-10-03T14:20:34Z"
+  },
+  "compose-ps.txt": {
+    "source": "docker compose -p obs ps -a",
+    "command": "docker compose -p obs ps -a",
+    "captured_at": "2026-10-03T14:20:34Z"
+  },
+  "ddl.sql": {
+    "source": "stack/clickhouse/*.sql",
+    "command": "cat",
+    "captured_at": "2026-10-03T14:20:34Z"
+  },
+  "comparison.json": {
+    "source": "cost/comparison.json",
+    "command": "python3 cost/compare.py --json cost/comparison.json",
+    "captured_at": "2026-10-03T14:20:34Z"
+  },
+  "baseline.json": {
+    "source": "cost/baseline.json",
+    "command": "python3 cost/compare.py --json cost/comparison.json",
+    "captured_at": "2026-10-03T14:20:34Z"
+  },
+  "cost-model-output.txt": {
+    "source": "cost/model.py",
+    "command": "python3 cost/model.py --scan-tb 2384",
+    "captured_at": "2026-10-03T14:20:34Z"
+  },
+  "war-traces-unsupported.txt": {
+    "source": "ghcr.io/opendata-oss/otel-collector:v0.4.0",
+    "command": "validate a traces pipeline with the opendata exporter",
+    "captured_at": "2026-10-03T11:46:31Z"
+  },
+  "war-no-retry.txt": {
+    "source": "ghcr.io/opendata-oss/otel-collector:v0.4.0",
+    "command": "stop S3 mid-export, read the collector log",
+    "captured_at": "2026-10-03T11:46:44Z",
+    "dropping_lines": 3
+  },
+  "chaos-ingestor-crash.txt": {
+    "source": "stack/verify/chaos.py",
+    "command": "python3 stack/verify/chaos.py ingestor-crash (x3)",
+    "captured_at": "2026-10-03T11:47:44Z"
+  },
+  "screens/dash-availability.png": {
+    "source": "HyperDX /dashboards/6ac0b6a26b542a060966d707",
+    "command": "node course/tools/shot.mjs <url> <png> (headless Chrome, DevTools Protocol)",
+    "captured_at": "2026-10-03T14:21:12Z",
+    "ok": true,
+    "output": "wrote /Users/kahgeh/Dev/p/sre/course/evidence/screens/dash-availability.png"
+  },
+  "screens/dash-runlog.png": {
+    "source": "HyperDX /dashboards/6ac0b6a26b542a060966d719",
+    "command": "node course/tools/shot.mjs <url> <png> (headless Chrome, DevTools Protocol)",
+    "captured_at": "2026-10-03T14:21:21Z",
+    "ok": true,
+    "output": "wrote /Users/kahgeh/Dev/p/sre/course/evidence/screens/dash-runlog.png"
+  },
+  "screens/search-error-logs.png": {
+    "source": "HyperDX /search/6ac0b6a26b542a060966d723",
+    "command": "node course/tools/shot.mjs <url> <png> (headless Chrome, DevTools Protocol)",
+    "captured_at": "2026-10-03T14:21:31Z",
+    "ok": true,
+    "output": "wrote /Users/kahgeh/Dev/p/sre/course/evidence/screens/search-error-logs.png"
+  },
+  "screens/alerts.png": {
+    "source": "HyperDX /alerts",
+    "command": "node course/tools/shot.mjs <url> <png> (headless Chrome, DevTools Protocol)",
+    "captured_at": "2026-10-03T14:21:40Z",
+    "ok": true,
+    "output": "wrote /Users/kahgeh/Dev/p/sre/course/evidence/screens/alerts.png"
+  },
+  "payloads/01-otlp-decoded-by-debug-collector.txt": {
+    "source": "course/tools/capture-payloads.py",
+    "command": "python3 course/tools/capture-payloads.py",
+    "captured_at": "2026-10-03T12:18:06Z"
+  },
+  "payloads/02-buffer-manifest-and-batch.json": {
+    "source": "course/tools/capture-payloads.py",
+    "command": "python3 course/tools/capture-payloads.py",
+    "captured_at": "2026-10-03T12:18:06Z"
+  },
+  "payloads/03-clickhouse-insert.json": {
+    "source": "course/tools/capture-payloads.py",
+    "command": "python3 course/tools/capture-payloads.py",
+    "captured_at": "2026-10-03T12:18:06Z"
+  },
+  "payloads/04-stored-logs.json": {
+    "source": "course/tools/capture-payloads.py",
+    "command": "python3 course/tools/capture-payloads.py",
+    "captured_at": "2026-10-03T12:18:06Z"
+  },
+  "payloads/04-stored-rows.json": {
+    "source": "course/tools/capture-payloads.py",
+    "command": "python3 course/tools/capture-payloads.py",
+    "captured_at": "2026-10-03T12:18:06Z"
+  },
+  "payloads/05-hyperdx-queries.txt": {
+    "source": "course/tools/capture-payloads.py",
+    "command": "python3 course/tools/capture-payloads.py",
+    "captured_at": "2026-10-03T12:18:06Z"
+  },
+  "payloads/06-alert-webhook.json": {
+    "source": "course/tools/capture-payloads.py",
+    "command": "python3 course/tools/capture-payloads.py",
+    "captured_at": "2026-10-03T12:18:06Z"
+  },
+  "screens/trace-waterfall.png": {
+    "source": "HyperDX /search (Traces source, TraceId filter, span clicked)",
+    "command": "node course/tools/shot.mjs ... --click 'GET /chain'",
+    "captured_at": "2026-10-03T14:20:48Z",
+    "ok": true,
+    "output": "click GET /chain true\nwrote /Users/kahgeh/Dev/p/sre/course/evidence/screens/trace-waterfall.png"
+  },
+  "amd64-verify-report.json": {
+    "source": "stack/verify/out/amd64-182404/report.json",
+    "command": "stack/verify/verify.py against compose.amd64.yml (amd64 images under emulation on Apple Silicon)",
+    "captured_at": "2026-10-03T08:24:17Z"
+  },
+  "checkout-trace-sample.json": {
+    "source": "ClickHouse otel.otel_traces",
+    "command": "WHERE TraceId = '7c799b2b882d738c1515917b5f2f01aa' (a /checkout request: function spans from #[trace_all])",
+    "captured_at": "2026-10-03T14:20:34Z"
+  },
+  "screens/trace-waterfall-checkout.png": {
+    "source": "HyperDX /search (Traces source, TraceId filter, /checkout root span clicked)",
+    "command": "node course/tools/shot.mjs ... --click 'GET /checkout'",
+    "captured_at": "2026-10-03T14:21:03Z",
+    "ok": true,
+    "output": "click GET /checkout true\nwrote /Users/kahgeh/Dev/p/sre/course/evidence/screens/trace-waterfall-checkout.png"
+  }
+}

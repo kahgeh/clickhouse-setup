@@ -1,0 +1,147 @@
+#!/usr/bin/env python3
+from lib import page, quiz, write, neighbours
+
+body = '''  <section aria-labelledby="otlp">
+    <h2 id="otlp">OTLP</h2>
+    <p><dfn>OTLP</dfn> (the OpenTelemetry Protocol) is the wire format that applications use to send logs, metrics and traces. The test application in this stack sends OTLP to the collector, which listens on port 4317 for gRPC and port 4318 for HTTP (<code>stack/config/otel-collector.yaml</code>). Every request carries resource attributes such as <code>service.name</code>, so the collector and the tables know which service produced a record.</p>
+    <p>The three signals travel through separate pipelines in the collector. After the collector, the data is no longer OTLP on the wire: it is written as objects in the Buffer, and the ingestors decode it again before inserting rows.</p>
+  </section>
+
+  <section aria-labelledby="queue">
+    <h2 id="queue">An object-storage queue and its manifest</h2>
+    <p>The Buffer is a queue made of objects in an S3 bucket. A collector writes each batch as a data object and records it in a <dfn>manifest</dfn>, one small object per signal (<code>otel/logs/manifest</code> for logs). A reader sees only the batches the manifest lists, so a data object that is not yet listed is invisible to ingestors.</p>
+    <p>The risk is two writers updating the manifest at the same moment. Take two collector replicas, A and B, both writing the logs queue. Both read the manifest at version 12, which lists batches up to number 40. A adds batch 41 and B adds batch 42. If each simply overwrote the manifest, the second write would erase the first writer's entry, and batch 41 would be orphaned in the bucket.</p>
+    <p>The manifest is therefore updated with <dfn>compare-and-set</dfn>: a conditional S3 write that succeeds only if the object is still the version the writer read. The stack needs an object store with S3 conditional writes for this, which RustFS and AWS S3 provide (<code>stack/README.md</code>).</p>
+    <figure>
+      <pre class="mermaid">
+sequenceDiagram
+  autonumber
+  participant A as Writer A
+  participant B as Writer B
+  participant S as Manifest
+  A->>S: read v12
+  B->>S: read v12
+  A->>S: write v13 if v12
+  S-->>A: accepted
+  B->>S: write v13 if v12
+  S-->>B: rejected
+  B->>S: read v13, write v14
+  S-->>B: accepted
+      </pre>
+      <figcaption>Writer B (a second collector replica) loses the race at step 5 and nothing is overwritten. After steps 7 and 8 version 14 lists both batches. A writes version 13 with batch 41 and B with batch 42. The version and batch numbers are an illustration.</figcaption>
+    </figure>
+    <p>The loser re-reads the current manifest, adds its entry on top of it, and tries again. Neither writer needs a lock, and no entry is lost. Ingestors read the manifest the same way, so they never see a half-written list.</p>
+  </section>
+
+  <section aria-labelledby="delivery">
+    <h2 id="delivery">At-least-once, exactly-once and effectively-once</h2>
+    <p>A sender that is unsure whether a message arrived can either send it again or give up. Resending guarantees <dfn>at-least-once</dfn> delivery: nothing is lost, and some messages may arrive twice. Delivering each message exactly once is not something a network call can promise on its own, because a lost acknowledgement looks the same as a lost request.</p>
+    <p>The stack uses at-least-once delivery and removes the repeats at the end, so the stored result is the same as if each record had arrived once. This is <dfn>effectively-once</dfn> storage, built from idempotent writes: writing the same thing twice has the same effect as writing it once.</p>
+    <table class="data">
+      <thead><tr><th scope="col">Hop</th><th scope="col">Delivery</th><th scope="col">What removes or prevents repeats</th></tr></thead>
+      <tbody>
+        <tr><td>Application to collector</td><td>At-least-once</td><td>Nothing. A retry after a lost acknowledgement can duplicate a request's telemetry.</td></tr>
+        <tr><td>Collector to Buffer</td><td>Retried up to 5 minutes by default</td><td>A batch is reported exported only after the Buffer write is durable.</td></tr>
+        <tr><td>Buffer to ingestor</td><td>At-least-once</td><td>An ingestor acknowledges a range only after ClickHouse accepts it, so a crash replays the range.</td></tr>
+        <tr><td>Ingestor to ClickHouse</td><td>Effectively-once</td><td>Insert token, then the sort key on merge.</td></tr>
+      </tbody>
+    </table>
+    <aside class="note"><p><strong>The first hop is the exception.</strong> Duplicates created between the application and the collector are not removed by the token, because they enter the pipeline as separate records. Module 11 lists this with the other limits.</p></aside>
+  </section>
+
+  <section aria-labelledby="token">
+    <h2 id="token">The deterministic insert token</h2>
+    <p>Each chunk that an ingestor sends to ClickHouse carries a token built from where its rows came from and how they were cut. For the logs table the token has this form, and a constructed example follows it:</p>
+<pre><code>{manifest}:{db}.{table}:{low}-{high}:{adapter_version}:{fingerprint}:{chunk_index}
+otel/logs/manifest:otel.otel_logs:17-17:1:&lt;fingerprint&gt;:0</code></pre>
+    <table class="data idem-parts">
+      <thead><tr><th scope="col">Part</th><th scope="col">Example</th><th scope="col">Meaning</th></tr></thead>
+      <tbody>
+        <tr><td><code>{manifest}</code></td><td><code>otel/logs/manifest</code></td><td>Which queue the rows came from.</td></tr>
+        <tr><td><code>{db}.{table}</code></td><td><code>otel.otel_logs</code></td><td>The destination table.</td></tr>
+        <tr><td><code>{low}-{high}</code></td><td><code>17-17</code></td><td>The range of queue sequence numbers in the commit group.</td></tr>
+        <tr><td><code>{adapter_version}</code></td><td><code>1</code></td><td>The adapter version from the ingestor configuration.</td></tr>
+        <tr><td><code>{fingerprint}</code></td><td>a hash</td><td>A stable hash of every setting that affects chunk boundaries: database, table, <code>max_chunk_rows</code>, <code>max_chunk_bytes</code> and adapter version.</td></tr>
+        <tr><td><code>{chunk_index}</code></td><td><code>0</code></td><td>The position of this chunk when a range is split into several inserts.</td></tr>
+      </tbody>
+    </table>
+    <p>The token must be identical on a replay because ClickHouse recognises a repeat only by comparing tokens. After a crash the ingestor reads the same range again. The chunk planner sorts the records by sequence, entry and record index, and cuts them at the configured row and byte limits, so the same input gives the same chunks and the same token. ClickHouse has already accepted that token and drops the insert.</p>
+    <p>A configuration change must change the token. If <code>max_chunk_rows</code> went from 10,000 to 5,000 between a crash and the replay, chunk 0 would hold different rows than before. Reusing its old token would make ClickHouse drop rows it never stored. The fingerprint changes with the setting, so the replay gets new tokens, ClickHouse accepts the inserts, and the sort key (next section) removes the repeats.</p>
+  </section>
+
+  <section aria-labelledby="rmt">
+    <h2 id="rmt">ReplacingMergeTree and FINAL</h2>
+    <p>The token check is the first defence and works at insert time, inside ClickHouse's deduplication window (<code>non_replicated_deduplication_window = 1000</code> in the tables). The second is the table engine. Every table is a <dfn>ReplacingMergeTree</dfn> whose <code>ORDER BY</code> ends with the provenance key <code>_odb_sequence, _odb_entry_index, _odb_record_index</code>. Rows that share a sort key are the same record read twice, and a background merge keeps one of them.</p>
+    <p>Merges run when ClickHouse decides, so until one happens a table can hold both copies. <code>SELECT count() FROM otel.otel_logs FINAL</code> collapses rows with the same sort key while reading, and gives the deduplicated count immediately. The verification checks compare the raw count, the <code>FINAL</code> count and the number of unique provenance keys, and require all three to be equal.</p>
+    <p>The probe <code>scenario_dedup_token</code> in <code>stack/verify/chaos.py</code> works on a scratch table and asserts two things. Inserting the same chunk twice with the same token must leave 2 rows, because the second insert is dropped. Inserting identical content under a new token must store 4 raw rows, and <code>FINAL</code> must show 2. Its output is not part of the captured evidence here, so run it to see the result.</p>
+  </section>
+
+  <section aria-labelledby="lab">
+    <h2 id="lab">Idempotency lab</h2>
+    <p>The lab models one chunk of two log rows, read from queue sequence 17. Use the buttons in order and watch the two panels: the rows as stored, and the rows a query with <code>FINAL</code> sees. The model follows the probe described above and does not call a real database.</p>
+    <div class="sim" id="idem-lab">
+      <p class="controls-row">
+        <button type="button" class="btn" id="idem-t1">Insert chunk (token T1)</button>
+        <button type="button" class="btn" id="idem-replay">Replay same chunk (same token)</button>
+        <button type="button" class="btn" id="idem-t2">Insert same rows with a new token T2</button>
+        <button type="button" class="btn" id="idem-merge">Run merge / show FINAL</button>
+        <button type="button" class="btn" id="idem-reset">Reset</button>
+      </p>
+      <p class="out" aria-live="polite"><span class="pill" id="idem-verdict">No insert</span> <span id="idem-why">Insert the chunk to start.</span></p>
+      <div class="compare">
+        <section>
+          <h3>Rows as stored: <span class="idem-count" id="idem-raw-count">0</span></h3>
+          <table class="data idem-tab"><thead><tr><th scope="col">Sort key (sequence/entry/record)</th><th scope="col">Row</th><th scope="col">Insert token</th></tr></thead><tbody id="idem-raw-body"><tr><td colspan="3">No rows</td></tr></tbody></table>
+        </section>
+        <section>
+          <h3>Rows seen with FINAL: <span class="idem-count" id="idem-final-count">0</span></h3>
+          <table class="data idem-tab"><thead><tr><th scope="col">Sort key (sequence/entry/record)</th><th scope="col">Row</th></tr></thead><tbody id="idem-final-body"><tr><td colspan="2">No rows</td></tr></tbody></table>
+        </section>
+      </div>
+      <table class="steps"><thead><tr><th scope="col">Action</th><th scope="col">Insert</th><th scope="col">Stored rows</th><th scope="col">FINAL rows</th></tr></thead><tbody id="idem-history"></tbody></table>
+    </div>
+    <aside class="note"><p><strong>What to notice.</strong> Replaying with the same token never changes the stored count. A new token with identical content does add rows, and only the sort key brings the count back to the number of distinct records. Without JavaScript, the probe results in the section above describe the same outcomes.</p></aside>
+  </section>
+
+  <section aria-labelledby="metrics">
+    <h2 id="metrics">Cumulative and delta metrics</h2>
+    <p>A counter such as <code>app.requests</code> can be reported in two ways. A <dfn>cumulative</dfn> metric reports the total since the process started, and each export repeats the running total. A <dfn>delta</dfn> metric reports only the change during the export interval. The test application exports cumulative metrics every 5 seconds, so the stored rows in <code>otel_metrics_sum</code> are running totals and not per-interval counts.</p>
+    <p>Suppose a counter is exported as 10, 14, 14 and 20. Adding those values gives 58, which is meaningless. The increase is the change between snapshots: 4, 0 and 6, a total of 10 after the first snapshot. The first snapshot cannot give a change because it has nothing before it, which is why charting tools handle it specially. The numbers here are an illustration, not measured values.</p>
+    <p>HyperDX has three behaviours to know when reading cumulative metrics:</p>
+    <ul>
+      <li>Cumulative metric charts drop each series' first point, so the increase before the first snapshot of a series is not shown.</li>
+      <li>Histogram counts are computed from changes between snapshots.</li>
+      <li>As a result the <em>app.requests by outcome</em> dashboard tile undercounts. The verification checks read the final cumulative value of each series instead, which carries the total.</li>
+    </ul>
+    <p>The practical rule is to read the latest value of a cumulative counter, or use a rate over time, and never to add its raw values together. The same applies to a histogram's count and sum.</p>
+  </section>'''
+
+q = quiz([
+    {"q": "Collectors A and B both read manifest version 12 and each tries to write a version 13 that lists its own new batch. A's write lands first. What is the state afterwards?",
+     "options": [
+        ("The manifest lists only B's batch, because the last write replaces the earlier one and A's entry is lost.", "That is what a plain overwrite would do, and the conditional write exists to prevent it. Revisit what the condition on the write checks."),
+        ("Both writes succeed, so the manifest lists batch numbers 41 and 42 twice, once for each collector.", "A conditional write accepts only one writer per version, so a second acceptance of the same version cannot happen. Revisit the sequence diagram."),
+        ("B's write is rejected, so B re-reads version 13 and then writes version 14 listing both batches.", "The condition on the write means B cannot replace a version it has not seen, so the retry builds on A's entry."),
+     ], "answer": 2},
+    {"q": "An ingestor inserts a chunk, is killed before it acknowledges, and meanwhile an operator lowers max_chunk_rows. After the restart it replays the range. What do you see in the table?",
+     "options": [
+        ("The stored row count rises for a while, and queries with FINAL still return each record just once.", "New tokens mean the insert-time check cannot recognise the repeat, while identical sort keys still collapse the copies on merge or with FINAL."),
+        ("Nothing changes, because the repeated range always produces the same token as the first attempt.", "The token includes a hash of the chunking settings, so a changed limit changes it. Revisit what the fingerprint covers."),
+        ("The replayed inserts are rejected as errors, and the ingestor stops until an operator clears them.", "Tokens that do not match are simply new inserts to ClickHouse, and nothing in the path treats them as an error. Revisit how a repeat is recognised."),
+     ], "answer": 0},
+    {"q": "A cumulative counter is exported every 5 seconds with the values 40, 55, 55 and 80. A chart sums the change between consecutive snapshots. What total does it show for the whole period?",
+     "options": [
+        ("80, the last value, because that is the total the counter reached.", "That is the counter's running total including the 40 counted before the first snapshot, and a chart of changes starts after that point. Revisit the delta example."),
+        ("40, the increase from the first snapshot of 40 to the last of 80.", "The changes are 15, 0 and 25, and cumulative values repeat the running total on each export."),
+        ("230, the sum of all four values, because each export adds its own count.", "Adding cumulative values counts the earlier requests again at every export. Revisit why the raw values are running totals."),
+     ], "answer": 1},
+], gate="All correct. Continue to module 8, architecture and setup.")
+
+prev, nxt = neighbours("m07")
+write("07-concepts.html", page(
+    "07-concepts.html", "m07", "Concepts", "Running it", "1 of 5",
+    "The ideas behind the platform: how a queue on object storage stays consistent, why a retried insert does not create duplicates, and how to read cumulative metrics.",
+    ["explain how an object-storage queue stays consistent when two writers update its manifest,",
+     "explain why a retried insert does not create duplicate rows, and",
+     "read cumulative metrics correctly, including the HyperDX quirks."],
+    body, q, scripts=["sim-idempotency.js"], mermaid=True, prev=prev, next=nxt))

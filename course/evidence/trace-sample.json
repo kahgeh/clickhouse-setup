@@ -1,0 +1,55 @@
+{
+  "trace_id": "db4b635984efdc74db9c685a6ad2fdaf",
+  "spans": [
+    {
+      "ServiceName": "web",
+      "SpanKind": "Server",
+      "SpanName": "GET /chain",
+      "StatusCode": "Unset",
+      "duration_ms": 42.132,
+      "SpanId": "dfe02fcabfcef1a4",
+      "ParentSpanId": ""
+    },
+    {
+      "ServiceName": "web",
+      "SpanKind": "Client",
+      "SpanName": "backend.Process",
+      "StatusCode": "Unset",
+      "duration_ms": 42.1,
+      "SpanId": "68ba91820c84df47",
+      "ParentSpanId": "dfe02fcabfcef1a4"
+    },
+    {
+      "ServiceName": "backend",
+      "SpanKind": "Server",
+      "SpanName": "backend.Process",
+      "StatusCode": "Unset",
+      "duration_ms": 6.445,
+      "SpanId": "c38377bb6f4575af",
+      "ParentSpanId": "68ba91820c84df47"
+    },
+    {
+      "ServiceName": "backend",
+      "SpanKind": "Internal",
+      "SpanName": "backend.compute",
+      "StatusCode": "Unset",
+      "duration_ms": 6.416,
+      "SpanId": "cb48dc6035fbb9c6",
+      "ParentSpanId": "c38377bb6f4575af"
+    }
+  ],
+  "logs": [
+    {
+      "ServiceName": "backend",
+      "SeverityText": "INFO",
+      "Body": "backend processed",
+      "SpanId": "c38377bb6f4575af"
+    },
+    {
+      "ServiceName": "web",
+      "SeverityText": "INFO",
+      "Body": "chain handled",
+      "SpanId": "dfe02fcabfcef1a4"
+    }
+  ]
+}

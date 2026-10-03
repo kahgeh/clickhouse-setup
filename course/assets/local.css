@@ -1,0 +1,170 @@
+/* Course-wide extras, linked after components.css. Tokens only: colour and fonts come from theme.css. */
+
+/* ---- site bar and breadcrumbs ---- */
+.site-bar { display: flex; flex-wrap: wrap; gap: var(--size-2) var(--size-4); align-items: baseline;
+  max-width: var(--measure); margin: 0 auto; padding: var(--size-3) var(--size-fluid-2) 0;
+  font-family: var(--font-heading); font-size: var(--font-size-1); }
+.site-bar a { text-decoration: none; }
+.site-bar .brand { font-weight: var(--font-weight-7); letter-spacing: var(--font-letterspacing-1); }
+.crumbs { color: var(--text-2); font-size: var(--font-size-0); margin: 0; }
+
+/* ---- landing: tracks ---- */
+.track-grid { display: grid; gap: var(--size-fluid-2); grid-template-columns: repeat(auto-fit, minmax(16rem, 1fr)); margin: var(--size-5) 0; }
+.track { border: var(--border-size-1) solid var(--border); border-radius: var(--card-radius);
+  background: var(--surface-2); padding: var(--size-4); }
+.track h3 { margin-top: 0; }
+.track .for { color: var(--text-2); font-size: var(--font-size-0); margin: 0 0 var(--size-3); }
+ul.mods { list-style: none; padding: 0; margin: 0; display: grid; gap: var(--size-2); }
+ul.mods li { display: flex; gap: var(--size-2); align-items: baseline; }
+ul.mods .num { font-family: var(--font-code); color: var(--text-2); min-width: 2ch; }
+ul.mods li.is-done a::after { content: " \2713"; color: var(--good); }
+.progress { display: block; width: 100%; height: var(--size-2); margin: var(--size-3) 0 var(--size-1);
+  accent-color: var(--accent); }
+
+/* ---- module pager ---- */
+.pager { display: flex; justify-content: space-between; gap: var(--size-3); flex-wrap: wrap;
+  margin: var(--size-8) 0 var(--size-5); padding-top: var(--size-4); border-top: var(--border-size-1) solid var(--border); }
+.pager a { text-decoration: none; border: var(--border-size-1) solid var(--border-strong); border-radius: var(--card-radius);
+  padding: var(--size-2) var(--size-4); }
+.pager a:hover { background: var(--accent-soft); }
+.pager .next { margin-left: auto; }
+
+/* ---- learning goals ---- */
+.goals { border-left: var(--border-size-2) solid var(--accent); background: var(--accent-soft);
+  padding: var(--size-3) var(--size-4); margin: var(--size-4) 0; }
+.goals h2 { margin-top: 0; font-size: var(--font-size-3); }
+.goals ul { margin-bottom: 0; }
+
+/* ---- key numbers ---- */
+.kpi-row { display: grid; gap: var(--size-3); grid-template-columns: repeat(auto-fit, minmax(10rem, 1fr)); margin: var(--size-4) 0; }
+.kpi { border: var(--border-size-1) solid var(--border); border-radius: var(--card-radius); background: var(--surface-2);
+  padding: var(--size-3); }
+.kpi .big { display: block; font-family: var(--font-heading); font-size: var(--font-size-5); font-weight: var(--font-weight-7);
+  line-height: var(--font-lineheight-0); color: var(--accent); }
+.kpi .what { display: block; margin-top: var(--size-1); color: var(--text-2); font-size: var(--font-size-0); }
+
+/* ---- status pills ---- */
+.pill { display: inline-block; font-family: var(--font-code); font-size: var(--font-size-0); padding: 0 var(--size-2);
+  border-radius: var(--radius-2); border: var(--border-size-1) solid var(--border-strong); }
+.pill--ok { color: var(--good); border-color: var(--good); }
+.pill--bad { color: var(--warn-text); border-color: var(--warn); background: var(--warn-soft); }
+
+/* ---- evidence blocks ---- */
+.evid { border: var(--border-size-1) solid var(--border); border-radius: var(--card-radius); background: var(--surface-2);
+  padding: var(--size-3) var(--size-4); margin: var(--size-4) 0; }
+.evid h3 { margin-top: 0; }
+.evid .src { color: var(--text-2); font-size: var(--font-size-0); margin: var(--size-2) 0 0; }
+pre.log { max-height: 22rem; overflow: auto; font-size: var(--font-size-0); }
+.shot { margin: var(--size-4) 0; }
+.shot img { display: block; max-width: 100%; height: auto; border: var(--border-size-1) solid var(--border-strong);
+  border-radius: var(--card-radius); }
+.shot .placeholder { border: var(--border-size-2) dashed var(--border-strong); border-radius: var(--card-radius);
+  padding: var(--size-8) var(--size-4); text-align: center; color: var(--text-2); }
+table.data { border-collapse: collapse; width: 100%; font-size: var(--font-size-0); margin: var(--size-3) 0; }
+table.data th, table.data td { border-bottom: var(--border-size-1) solid var(--border); padding: var(--size-1) var(--size-3); text-align: left; }
+table.data td.num, table.data th.num { text-align: right; font-family: var(--font-code); }
+table.data tr.is-ok td:first-child { border-left: var(--border-size-2) solid var(--good); }
+table.data tr.is-bad td:first-child { border-left: var(--border-size-2) solid var(--warn); }
+
+/* ---- interactive panels ---- */
+.sim { border: var(--border-size-1) solid var(--border-strong); border-radius: var(--card-radius); background: var(--surface-2);
+  padding: var(--size-4); margin: var(--size-5) 0; }
+.sim > h3 { margin-top: 0; }
+.sim .controls { display: flex; flex-wrap: wrap; gap: var(--size-3) var(--size-5); align-items: end; margin-bottom: var(--size-3); }
+.sim .ctl { display: grid; gap: var(--size-1); font-size: var(--font-size-0); color: var(--text-2); }
+.sim .ctl output { font-family: var(--font-code); color: var(--text-1); font-size: var(--font-size-1); }
+.sim input[type="range"] { accent-color: var(--accent); min-width: 12rem; }
+.sim select, .sim input[type="number"] { font: inherit; padding: var(--size-1) var(--size-2); color: var(--text-1);
+  background: var(--surface-1); border: var(--border-size-1) solid var(--border-strong); border-radius: var(--radius-2); }
+.btn { font: inherit; cursor: pointer; padding: var(--size-2) var(--size-4); color: var(--text-1); background: var(--surface-1);
+  border: var(--border-size-1) solid var(--border-strong); border-radius: var(--card-radius); }
+.btn:hover { background: var(--accent-soft); }
+.btn[aria-pressed="true"] { background: var(--warn-soft); border-color: var(--warn); color: var(--warn-text); }
+.sim .out { margin: var(--size-3) 0 0; min-height: 3rem; }
+.sim .out strong { color: var(--accent); }
+.sim .readout { font-family: var(--font-code); font-size: var(--font-size-0); color: var(--text-2); margin: var(--size-2) 0 0; }
+
+/* ---- extra diagram parts (colour from tokens, same idea as the d-* classes) ---- */
+.d-node { fill: var(--surface-2); stroke: var(--border-strong); stroke-width: 1.5; }
+.d-node--busy { fill: var(--accent-soft); stroke: var(--accent); }
+.d-node--down { fill: var(--warn-soft); stroke: var(--warn); }
+.d-edge { fill: none; stroke: var(--border-strong); stroke-width: 1.5; }
+.d-edge--live { stroke: var(--accent); stroke-width: 2.5; }
+.d-dot { fill: var(--accent); }
+.d-dot--dup { fill: var(--warn); }
+.d-bar { fill: var(--accent); }
+.d-bar--warn { fill: var(--warn); }
+.d-bar--muted { fill: var(--border-strong); }
+.d-bar--good { fill: var(--good); }
+.d-axis { stroke: var(--border-strong); stroke-width: 1; }
+.d-tick { fill: var(--text-2); font-size: 13px; }
+svg [data-node] { cursor: pointer; }
+svg [data-node]:focus-visible { outline: var(--border-size-2) solid var(--accent); }
+
+/* ---- reading aids ---- */
+.term { border-bottom: var(--border-size-1) dotted var(--text-2); cursor: help; }
+.caveat { border-left: var(--border-size-2) solid var(--warn); background: var(--warn-soft); padding: var(--size-3) var(--size-4); margin: var(--size-4) 0; }
+.caveat > :last-child { margin-bottom: 0; }
+.caveat strong { color: var(--warn-text); }
+.tag { font-family: var(--font-code); font-size: var(--font-size-0); color: var(--text-2); }
+
+/* ---- button rows ---- */
+.controls-row { display: flex; flex-wrap: wrap; gap: var(--size-2); margin: var(--size-3) 0; }
+
+/* ---- Module 4: trace explorer (tokens only) ---- */
+.trace-out h4 { margin: var(--size-2) 0; }
+.trace-out p { margin: var(--size-1) 0; }
+.trace-out pre.log { margin: var(--size-1) 0; }
+.trace-scroll { overflow-x: auto; }
+.trace-scroll td code { white-space: nowrap; }
+
+/* ---- module 8: setup checklist (chk-) ---- */
+.chk-list { list-style: none; padding: 0; margin: var(--size-3) 0 0; display: grid; gap: var(--size-3); }
+.chk-step { border: var(--border-size-1) solid var(--border); border-radius: var(--card-radius); background: var(--surface-1); padding: var(--size-3) var(--size-4); }
+.chk-step label { cursor: pointer; }
+.chk-step input[type="checkbox"] { accent-color: var(--accent); inline-size: 1.1em; block-size: 1.1em; vertical-align: middle; }
+.chk-step pre { margin: var(--size-2) 0; }
+.chk-expect { margin: var(--size-2) 0 0; color: var(--text-2); }
+.chk-expect strong { color: var(--text-1); }
+
+/* ---- Module 5: SLI calculator and data tables (tokens only) ---- */
+.sli-scroll { overflow-x: auto; }
+.sli-scroll td code { white-space: nowrap; }
+.sli-scroll input[type="number"] { width: 6rem; }
+.sli-out { display: grid; gap: var(--size-3); grid-template-columns: repeat(auto-fit, minmax(8rem, 1fr)); margin: var(--size-3) 0; }
+
+/* ---- Module 6: alert window simulator and checks table (tokens only) ---- */
+.alert-scroll { overflow-x: auto; }
+.alert-scroll td code { white-space: nowrap; }
+.alert-sim-note { color: var(--text-2); font-size: var(--font-size-0); }
+
+/* ---- module 10: spot-the-flaw exercise (flaw-) ---- */
+.flaw-q { border: var(--border-size-1) solid var(--border); border-radius: var(--card-radius); background: var(--surface-1); padding: var(--size-3) var(--size-4); margin: 0 0 var(--size-4); min-inline-size: 0; }
+.flaw-q legend { font-weight: var(--font-weight-6); padding-inline: var(--size-2); }
+.flaw-opt { display: block; cursor: pointer; padding: var(--size-1) 0; }
+.flaw-opt input { accent-color: var(--accent); margin-inline-end: var(--size-2); }
+.flaw-result { margin-top: var(--size-3); }
+.flaw-result:empty { margin: 0; }
+.flaw-all { margin: var(--size-1) 0 0; padding-inline-start: var(--size-5); font-size: var(--font-size-0); color: var(--text-2); }
+
+/* ---- module 7: idempotency lab and token table (idem-) ---- */
+table.idem-parts td:first-child, table.idem-tab td { white-space: nowrap; }
+.idem-count { font-size: var(--font-size-3); color: var(--accent); font-family: var(--font-heading); }
+.chk-list { grid-template-columns: minmax(0, 1fr); }
+.chk-step { min-inline-size: 0; }
+.chk-step pre { overflow-x: auto; max-inline-size: 100%; }
+
+/* ---- tab-style toggle buttons (selection is not a warning) ---- */
+.btn--tab[aria-pressed="true"] { background: var(--accent-soft); border-color: var(--accent); color: var(--text-1); font-weight: var(--font-weight-6); }
+
+/* ---- data tables on narrow screens: wrap long cells and tighten padding instead of scrolling the page sideways ---- */
+table.data th, table.data td { overflow-wrap: anywhere; }
+@media (max-width: 40em) {
+  table.data th, table.data td { padding: var(--size-1); }
+  table.data { font-size: var(--font-size-0); }
+}
+table.steps th, table.steps td { overflow-wrap: anywhere; }
+@media (max-width: 40em) {
+  table.steps th, table.steps td { padding: var(--size-1); }
+  table.steps { font-size: var(--font-size-0); }
+}

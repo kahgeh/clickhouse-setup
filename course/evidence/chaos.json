@@ -1,0 +1,44 @@
+{
+  "chaos-ingestor-crash": {
+    "run_id": "chaos-ingestor-crash-233533",
+    "passed": 17,
+    "failed": 0,
+    "checks": 17
+  },
+  "chaos-ingestor-restart": {
+    "run_id": "chaos-ingestor-restart-233552",
+    "passed": 17,
+    "failed": 0,
+    "checks": 17
+  },
+  "chaos-clickhouse-outage": {
+    "run_id": "chaos-clickhouse-outage-233618",
+    "passed": 17,
+    "failed": 0,
+    "checks": 17
+  },
+  "chaos-s3-blip": {
+    "run_id": "chaos-s3-blip-233655",
+    "passed": 17,
+    "failed": 0,
+    "checks": 17
+  },
+  "chaos-collector-restart-idle": {
+    "run_id": "chaos-collector-restart-idle-233826",
+    "passed": 18,
+    "failed": 0,
+    "checks": 18
+  },
+  "chaos-bad-payload": {
+    "run_id": "chaos-bad-payload-233512",
+    "passed": 17,
+    "failed": 0,
+    "checks": 17
+  },
+  "chaos-s3-outage-long": {
+    "run_id": "chaos-s3-outage-long-233723",
+    "passed": 17,
+    "failed": 0,
+    "checks": 17
+  }
+}

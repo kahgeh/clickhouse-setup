@@ -1,0 +1,43 @@
+# clickhouse-ingestor for the metrics signal. Secrets/endpoints are overridden by
+# INGESTOR__* env vars (e.g. INGESTOR__CLICKHOUSE__ENDPOINT, __USER, __PASSWORD,
+# INGESTOR__BUFFER__OBJECT_STORE__BUCKET); object-store credentials/endpoint come
+# from the standard AWS_* env chain.
+signal: metrics
+
+buffer:
+  manifest_path: otel/metrics/manifest
+  data_prefix: otel/metrics/data
+  object_store:
+    type: Aws
+    region: us-east-1
+    bucket: observability-buffer
+
+clickhouse:
+  endpoint: http://clickhouse:8123
+  database: otel
+
+runtime:
+  dry_run: false
+  poll_interval_ms: 250
+  retry_max_attempts: 6
+  retry_initial_backoff_ms: 100
+  request_timeout_secs: 30
+
+ack:
+  policy: every_commit_group
+
+adapter:
+  adapter_version: 1
+  max_chunk_rows: 10000
+  max_chunk_bytes: 4194304
+  # Tables set non_replicated_deduplication_window, so insert-time dedup works
+  # on a single node (ReplacingMergeTree still dedups on merge as a backstop).
+  apply_deduplication_token: true
+
+sink:
+  max_concurrent_commits: 2
+  serialization_format: json_each_row
+  client_mode: per_call
+
+metrics_server:
+  bind_addr: 0.0.0.0:9090

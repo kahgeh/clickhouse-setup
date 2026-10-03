@@ -1,0 +1,318 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>The platform in one picture</title>
+<link rel="stylesheet" href="../assets/tokens.css">
+<link rel="stylesheet" href="../assets/theme.css">
+<link rel="stylesheet" href="../assets/components.css">
+<link rel="stylesheet" href="../assets/local.css">
+</head>
+<body data-module="m02">
+<nav class="site-bar" aria-label="Course"><a class="brand" href="../index.html">Observability course</a></nav>
+<main>
+  <header>
+    <p class="crumbs">Story · module 2 of 3</p>
+    <h1>The platform in one picture</h1>
+    <p class="lede">How telemetry travels from an application to a dashboard, which stage holds it at each moment, and what each stage does when it fails.</p>
+  </header>
+
+  <section class="goals" aria-labelledby="goals">
+    <h2 id="goals">After this module you can</h2>
+    <ul>
+      <li>trace one request from the application to a query in HyperDX,</li>
+      <li>say where data is durable at each step, and</li>
+      <li>predict where data waits when one stage is down.</li>
+    </ul>
+  </section>
+
+  <section aria-labelledby="path">
+    <h2 id="path">One request, end to end</h2>
+    <p>Take a request to the web service at <code>/chain</code>. It calls the backend over gRPC and returns 200. Each service reports what it saw to the collector over OTLP. For this request that is four spans and two log lines in total: the web server span and its client span, then the backend server span and an internal span. The response carries the trace identifier in an <code>x-trace-id</code> header, so you can look the request up afterwards.</p>
+    <figure>
+      <pre class="mermaid">
+sequenceDiagram
+  autonumber
+  participant C as Client
+  participant W as Web service
+  participant B as Backend
+  C->>W: GET /chain
+  W->>B: gRPC Process (trace context)
+  B-->>W: reply
+  W-->>C: 200 and x-trace-id
+      </pre>
+      <figcaption>The client has its answer after step 4. The services report their telemetry afterwards, so a slow or unavailable collector does not slow the request.</figcaption>
+    </figure>
+    <p>Each service then sends what it saw to the collector, which batches it and writes each batch to the Buffer, a durable queue on S3. The collector reports a batch as exported only after the Buffer write is durable.</p>
+    <figure>
+      <pre class="mermaid">
+sequenceDiagram
+  autonumber
+  participant S as Web and backend
+  participant X as Collector
+  participant Q as Buffer on S3
+  S->>X: OTLP, 2 spans and 1 log each
+  X->>Q: write batch object, update manifest
+  Q-->>X: durable
+      </pre>
+      <figcaption>Data is durable at step 3. Before that it exists only in the collector's memory.</figcaption>
+    </figure>
+    <p>An ingestor then reads the batch from the Buffer, inserts it into ClickHouse, and acknowledges the range afterwards. HyperDX queries ClickHouse separately, with a read-only user.</p>
+    <figure>
+      <pre class="mermaid">
+sequenceDiagram
+  autonumber
+  participant Q as Buffer on S3
+  participant I as Ingestor
+  participant D as ClickHouse
+  I->>Q: read manifest, fetch batch
+  I->>D: insert chunk with token T
+  D-->>I: accepted
+  I->>Q: acknowledge range
+      </pre>
+      <figcaption>The data is visible in ClickHouse at step 3. A crash between steps 3 and 4 repeats steps 1 to 3 with the same token T, and ClickHouse drops the repeat.</figcaption>
+    </figure>
+  </section>
+
+  <section aria-labelledby="picture">
+    <h2 id="picture">The platform in one picture</h2>
+    <p>Select a stage to see what it does and how it fails. Every stage has a stated failure behaviour, and module 9 shows the tests that check each one.</p>
+    <figure>
+      <svg viewBox="0 0 800 280" role="img" aria-labelledby="arch-t arch-d">
+<title id="arch-t">Architecture of the platform</title>
+<desc id="arch-d">Applications send OTLP to the collector, which writes to the Buffer on S3. Ingestors read the Buffer and insert into ClickHouse. HyperDX reads ClickHouse and posts alerts to a webhook.</desc>
+<defs><marker id="arr" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto"><path class="d-arrowhead" d="M0 0 L10 5 L0 10 z"/></marker></defs>
+<path class="d-edge" d="M135 68 L168 68" marker-end="url(#arr)"/>
+<path class="d-edge" d="M295 68 L328 68" marker-end="url(#arr)"/>
+<path class="d-edge" d="M455 68 L488 68" marker-end="url(#arr)"/>
+<path class="d-edge" d="M615 68 L648 68" marker-end="url(#arr)"/>
+<path class="d-edge" d="M712 200 L712 126" marker-end="url(#arr)"/>
+<path class="d-edge" d="M648 228 L618 228" marker-end="url(#arr)"/>
+<g data-node="apps" tabindex="0" role="button" aria-pressed="false" aria-label="Applications: show details"><rect class="d-node" x="10" y="40" width="125" height="56" rx="4"/><text class="d-text" x="72" y="73">Applications</text></g>
+<g data-node="collector" tabindex="0" role="button" aria-pressed="false" aria-label="Collector: show details"><rect class="d-node" x="170" y="40" width="125" height="56" rx="4"/><text class="d-text" x="232" y="73">Collector</text></g>
+<g data-node="buffer" tabindex="0" role="button" aria-pressed="false" aria-label="Buffer on S3: show details"><rect class="d-node" x="330" y="40" width="125" height="56" rx="4"/><text class="d-text" x="392" y="73">Buffer (S3)</text></g>
+<g data-node="ingestors" tabindex="0" role="button" aria-pressed="false" aria-label="Ingestors: show details"><rect class="d-node" x="490" y="40" width="125" height="56" rx="4"/><text class="d-text" x="552" y="73">Ingestors x3</text></g>
+<g data-node="clickhouse" tabindex="0" role="button" aria-pressed="false" aria-label="ClickHouse: show details"><rect class="d-node" x="650" y="40" width="125" height="56" rx="4"/><text class="d-text" x="712" y="73">ClickHouse</text></g>
+<g data-node="hyperdx" tabindex="0" role="button" aria-pressed="false" aria-label="HyperDX: show details"><rect class="d-node" x="650" y="200" width="125" height="56" rx="4"/><text class="d-text" x="712" y="233">HyperDX</text></g>
+<g data-node="webhook" tabindex="0" role="button" aria-pressed="false" aria-label="Alert webhook: show details"><rect class="d-node" x="490" y="200" width="125" height="56" rx="4"/><text class="d-text" x="552" y="233">Alert webhook</text></g>
+</svg>
+      <figcaption>Data flows left to right. HyperDX reads ClickHouse and sends alert notifications to the webhook, and it is not in the ingestion path.</figcaption>
+    </figure>
+    <div class="sim" id="arch-panel">
+      <h3 id="arch-name">Select a stage</h3>
+      <p id="arch-does"></p>
+      <p id="arch-fails"></p>
+      <p class="readout" id="arch-evid"></p>
+    </div>
+  </section>
+
+  <section aria-labelledby="payloads">
+    <h2 id="payloads">Follow one span through the platform</h2>
+    <p>Each tab shows the real payload at one hop, captured from the running stack for a single <code>GET /chain</code> request. Hops 2 to 4 are one request through the real stack (trace <code>8599d7c6…</code>) and tie together by the Buffer sequence 173. Hop 1 was captured from a throwaway copy of the services on a separate network (trace <code>7efb7182…</code>), because the real collector does not print what it receives. It is a different request of the same shape.</p>
+    <div class="sim" id="payload-tour">
+      <h3>Payload at each hop</h3>
+      <p class="controls-row"><button type="button" class="btn btn--tab" data-payload-tab="otlp" aria-pressed="false">1 App to collector</button> <button type="button" class="btn btn--tab" data-payload-tab="buffer" aria-pressed="false">2 Collector to Buffer</button> <button type="button" class="btn btn--tab" data-payload-tab="insert" aria-pressed="false">3 Ingestor to ClickHouse</button> <button type="button" class="btn btn--tab" data-payload-tab="row" aria-pressed="false">4 Row as stored</button> <button type="button" class="btn btn--tab" data-payload-tab="sql" aria-pressed="false">5 HyperDX to ClickHouse</button> <button type="button" class="btn btn--tab" data-payload-tab="hook" aria-pressed="false">6 HyperDX to webhook</button></p>
+      <div data-payload-panel="otlp" hidden><p>One of the web service's two spans for a <code>GET /chain</code> request, as OTLP. The wire format is protobuf over gRPC, so this is the same message decoded to text by a debug exporter. The client span <code>backend.Process</code> has the server span as its parent, and the resource attributes identify the service and environment.</p><pre class="log"><code># One GET /chain request. Trace id 7efb7182e2d5812470f0c6070539a903
+# Decoded by a throwaway collector&#x27;s debug exporter (detailed). The wire format is protobuf over gRPC.
+
+ResourceSpans #0
+Resource SchemaURL: 
+Resource attributes:
+     -&gt; service.name: Str(web)
+     -&gt; service.version: Str(0.1.0)
+     -&gt; deployment.environment.name: Str(local)
+ScopeSpans #0
+ScopeSpans SchemaURL: 
+    ...
+Span #1
+    Trace ID       : 7efb7182e2d5812470f0c6070539a903
+    Parent ID      : 
+    ID             : 3b1b3b4681376a98
+    Name           : GET /chain
+    Kind           : Server
+    Start time     : 2026-10-03 12:17:24.42324259 +0000 UTC
+    End time       : 2026-10-03 12:17:24.464672366 +0000 UTC
+    Status code    : Unset
+    Status message : 
+    DroppedAttributesCount: 0
+    DroppedEventsCount: 0
+    DroppedLinksCount: 0
+Attributes:
+     -&gt; http.request.method: Str(GET)
+     -&gt; http.route: Str(/chain)
+     -&gt; url.path: Str(/chain)
+     -&gt; test_run_id: Str(payload-otlp)
+     -&gt; http.response.status_code: Int(200)</code></pre></div><div data-payload-panel="buffer" hidden><p>The collector wrote the batch as one object of 535 bytes that holds a 958-byte OTLP payload with 4 spans, and listed it in the manifest, which is 120 bytes. The envelope bytes <code>AQMBAA==</code> (base64 for the four bytes 1, 3, 1, 0) mean version 1, signal 3 (traces), encoding 1 (OTLP protobuf), which is how an ingestor knows which decoder to use.</p><pre class="log"><code>{
+  &quot;manifest&quot;: &quot;otel/traces/manifest&quot;,
+  &quot;manifest_bytes&quot;: 120,
+  &quot;queued_entries&quot;: 1,
+  &quot;entry&quot;: {
+    &quot;batch_object&quot;: &quot;otel/traces/data/01M40GJ97BZTQJYVZ2690BWJD4/0000000000000022&quot;,
+    &quot;batch_object_bytes&quot;: 535,
+    &quot;metadata_bytes&quot;: &quot;AQMBAA==&quot;,
+    &quot;envelope&quot;: {
+      &quot;encoding&quot;: 1,
+      &quot;signal&quot;: &quot;traces&quot;,
+      &quot;signal_type&quot;: 3,
+      &quot;version&quot;: 1
+    },
+    &quot;payloads_in_batch&quot;: 1,
+    &quot;otlp_payload_bytes&quot;: 958
+  },
+  &quot;otlp_payload_decoded (one of 4 spans shown)&quot;: {
+    &quot;attributes&quot;: [
+      {
+        &quot;key&quot;: &quot;http.request.method&quot;,
+        &quot;value&quot;: {
+          &quot;stringValue&quot;: &quot;GET&quot;
+        }
+      },
+      {
+        &quot;key&quot;: &quot;http.route&quot;,
+        &quot;value&quot;: {
+          &quot;stringValue&quot;: &quot;/chain&quot;
+        }
+      },
+      {
+        &quot;key&quot;: &quot;url.path&quot;,
+        &quot;value&quot;: {
+          &quot;stringValue&quot;: &quot;/chain&quot;
+        }
+      },
+      {
+        &quot;key&quot;: &quot;test_run_id&quot;,
+        &quot;value&quot;: {
+          &quot;stringValue&quot;: &quot;payload-buffer&quot;
+        }
+      },
+      {
+        &quot;key&quot;: &quot;http.response.status_code&quot;,
+        &quot;value&quot;: {
+          &quot;intValue&quot;: &quot;200&quot;
+        }
+      }
+    ],
+    &quot;endTimeUnixNano&quot;: &quot;1791029862886730946&quot;,
+    &quot;flags&quot;: 257,
+    &quot;kind&quot;: 2,
+    &quot;name&quot;: &quot;GET /chain&quot;,
+    &quot;spanId&quot;: &quot;760230a643ba946a&quot;,
+    &quot;startTimeUnixNano&quot;: &quot;1791029862879864011&quot;,
+    &quot;status&quot;: {},
+    &quot;traceId&quot;: &quot;8599d7c6e360400bafc2ae2997ab26f7&quot;
+  }
+}</code></pre></div><div data-payload-panel="insert" hidden><p>The ingestor inserts rows with this statement and sends the rows as JSON lines in the request body. The idempotency token is sent as a setting. Read it from the left: the manifest, the table, the Buffer sequence range <code>173-173</code>, the adapter version, a fingerprint of the chunking settings, and the chunk number. A replay of the same range produces the same token.</p><pre class="log"><code>{
+  &quot;user&quot;: &quot;ingestor&quot;,
+  &quot;query&quot;: &quot;INSERT INTO otel.otel_traces FORMAT JSONEachRow\n&quot;,
+  &quot;written_rows&quot;: &quot;4&quot;,
+  &quot;dedup_token&quot;: &quot;otel/traces/manifest:otel.otel_traces:173-173:1:843259ec4b04eff0:0&quot;
+}</code></pre></div><div data-payload-panel="row" hidden><p>The same request as stored in ClickHouse, with the columns HyperDX reads first and the provenance columns last. <code>_odb_sequence</code> is 173, the same number as the sequence range in the token, so a stored row can be traced back to the Buffer batch it came from. <code>_odb_clickhouse_inserted_at</code> is set by ClickHouse when the row is inserted and is how latency is measured.</p><pre class="log"><code>{
+  &quot;Timestamp&quot;: &quot;2026-10-03 12:17:42.879864011&quot;,
+  &quot;TraceId&quot;: &quot;8599d7c6e360400bafc2ae2997ab26f7&quot;,
+  &quot;SpanId&quot;: &quot;760230a643ba946a&quot;,
+  &quot;ParentSpanId&quot;: &quot;&quot;,
+  &quot;TraceState&quot;: &quot;&quot;,
+  &quot;SpanName&quot;: &quot;GET /chain&quot;,
+  &quot;SpanKind&quot;: &quot;Server&quot;,
+  &quot;ServiceName&quot;: &quot;web&quot;,
+  &quot;ResourceAttributes&quot;: {
+    &quot;deployment.environment.name&quot;: &quot;local&quot;,
+    &quot;service.name&quot;: &quot;web&quot;,
+    &quot;service.version&quot;: &quot;0.1.0&quot;
+  },
+  &quot;ScopeName&quot;: &quot;app&quot;,
+  &quot;ScopeVersion&quot;: &quot;&quot;,
+  &quot;SpanAttributes&quot;: {
+    &quot;http.request.method&quot;: &quot;GET&quot;,
+    &quot;http.response.status_code&quot;: &quot;200&quot;,
+    &quot;http.route&quot;: &quot;/chain&quot;,
+    &quot;test_run_id&quot;: &quot;payload-buffer&quot;,
+    &quot;url.path&quot;: &quot;/chain&quot;
+  },
+  &quot;Duration&quot;: &quot;6866935&quot;,
+  &quot;StatusCode&quot;: &quot;Unset&quot;,
+  &quot;StatusMessage&quot;: &quot;&quot;,
+  &quot;Events.Timestamp&quot;: [],
+  &quot;Events.Name&quot;: [],
+  &quot;Events.Attributes&quot;: [],
+  &quot;Links.TraceId&quot;: [],
+  &quot;Links.SpanId&quot;: [],
+  &quot;Links.TraceState&quot;: [],
+  &quot;Links.Attributes&quot;: [],
+  &quot;_odb_sequence&quot;: &quot;173&quot;,
+  &quot;_odb_entry_index&quot;: 0,
+  &quot;_odb_record_index&quot;: 1,
+  &quot;_odb_manifest_path&quot;: &quot;otel/traces/manifest&quot;,
+  &quot;_odb_data_path&quot;: &quot;otel/traces/data/01M40GJ97BZTQJYVZ2690BWJD4/0000000000000022&quot;,
+  &quot;_odb_ingestion_time_ms&quot;: &quot;1791029862942&quot;,
+  &quot;_adapter_version&quot;: 1,
+  &quot;_odb_clickhouse_inserted_at&quot;: &quot;2026-10-03 12:17:47.336771330&quot;
+}</code></pre></div><div data-payload-panel="sql" hidden><p>One of the queries HyperDX sent while drawing the dashboard, read from ClickHouse's query log. It is plain SQL over the same tables, run as the read-only user. The heading line shows how many rows and bytes the query read.</p><pre class="log"><code>## latency percentile tile: 4 ms, read 25564 rows, 460152 bytes
+SELECT quantileIf(0.5)(toFloat64OrDefault(toString(Duration / 1000000)), ((SpanKind ILIKE &#x27;%Server%&#x27;) AND (ServiceName ILIKE &#x27;%web%&#x27;)) AND (toFloat64OrDefault(toString(Duration / 1000000)) IS NOT NULL)) AS `p50 ms`, quantileIf(0.95)(toFloat64OrDefault(toString(Duration / 1000000)), ((SpanKind ILIKE &#x27;%Server%&#x27;) AND (ServiceName ILIKE &#x27;%web%&#x27;)) AND (toFloat64OrDefault(toString(Duration / 1000000)) IS NOT NULL)) AS `p95 ms`, quantileIf(0.99)(toFloat64OrDefault(toString(Duration / 1000000)), ((SpanKind ILIKE &#x27;%Server%&#x27;) AND (ServiceName ILIKE &#x27;%web%&#x27;)) AND (toFloat64OrDefault(toString(Duration / 1000000)) IS NOT NULL)) AS `p99 ms`, toStartOfInterval(toDateTime(Timestamp), toIntervalMinute(1)) AS __hdx_time_bucket
+  FROM otel.otel_traces
+  WHERE ((Timestamp &gt;= fromUnixTimestamp64Milli(_CAST(1791026220000, &#x27;Int64&#x27;))) AND (Timestamp &lt; fromUnixTimestamp64Milli(_CAST(1791028980000, &#x27;Int64&#x27;)))) AND (((SpanKind ILIKE &#x27;%Server%&#x27;) AND (ServiceName ILIKE &#x27;%web%&#x27;)) OR ((SpanKind ILIKE &#x27;%Server%&#x27;) AND (ServiceName ILIKE &#x27;%web%&#x27;)) OR ((SpanKind ILIKE &#x27;%Server%&#x27;) AND (ServiceName ILIKE &#x27;%web%&#x27;)))
+  GROUP BY __hdx_time_bucket ORDER BY __hdx_time_bucket ASC LIMIT _CAST(100000, &#x27;Int32&#x27;) FORMAT JSON</code></pre></div><div data-payload-panel="hook" hidden><p>The notification HyperDX posts when an alert fires. The body carries the count and the evaluated time range, and the link opens the dashboard tile.</p><pre class="log"><code>{
+  &quot;title&quot;: &quot;\ud83d\udea8 Alert: 5xx errors above 4 per minute (dashboard tile)&quot;,
+  &quot;state&quot;: &quot;ALERT&quot;,
+  &quot;body&quot;: &quot;\n60 exceeds 4\nTime Range (UTC): [Oct 3 9:56:00 AM - Oct 3 9:57:00 AM)\nMore than 4 web requests failed with 5xx in the last minute&quot;,
+  &quot;link&quot;: &quot;http://localhost:8080/dashboards/6ac0b6a26b542a060966d707?from=1791020940000&amp;granularity=1+minute&amp;to=1791021840000&amp;highlightedTileId=6ac0b6a26b542a060966d6fc&quot;
+}</code></pre></div>
+      <p class="readout">Captured 2026-10-03T12:18:06Z by <code>course/tools/capture-payloads.py</code>. The Buffer step pauses the traces ingestor for a few seconds so the entry is still queued when it is read.</p>
+    </div>
+  </section>
+
+  <section aria-labelledby="signals">
+    <h2 id="signals">Three signals, three queues</h2>
+    <p>Logs, metrics and traces do not share a queue. Each signal has its own pipeline in the collector, its own manifest in the Buffer, its own ingestor process, and its own ClickHouse tables.</p>
+    <table class="data">
+      <thead><tr><th scope="col">Signal</th><th scope="col">Buffer manifest</th><th scope="col">ClickHouse tables</th></tr></thead>
+      <tbody>
+        <tr><td>Logs</td><td><code>otel/logs/manifest</code></td><td><code>otel_logs</code></td></tr>
+        <tr><td>Traces</td><td><code>otel/traces/manifest</code></td><td><code>otel_traces</code></td></tr>
+        <tr><td>Metrics</td><td><code>otel/metrics/manifest</code></td><td><code>otel_metrics_gauge</code>, <code>otel_metrics_sum</code>, <code>otel_metrics_histogram</code></td></tr>
+      </tbody>
+    </table>
+    <aside class="note"><p><strong>Consequence.</strong> A problem with one signal, such as an ingestor that cannot decode an entry, stays in that signal's queue and does not stall the other two.</p></aside>
+  </section>
+
+  <section class="quiz" data-quiz aria-labelledby="quiz-h">
+    <h2 id="quiz-h">Check your understanding</h2>
+    <fieldset class="q" data-answer="a">
+      <legend>The traces ingestor is stopped for ten minutes while traffic continues. Where does the trace data wait, and what happens when the ingestor restarts?</legend>
+      <label class="opt"><input type="radio" name="q1" value="a"><span>It waits in the Buffer on S3; after the restart the ingestor reads the manifest and inserts it, and ClickHouse drops repeats.<span class="why">The queue is the durable store between the collector and the ingestors, so the stopped ingestor only delays delivery.</span></span></label>
+      <label class="opt"><input type="radio" name="q1" value="b"><span>It waits in the collector's memory, which holds every batch until the ingestor is back and then sends it again.<span class="why">The collector reports a batch as exported once it is in the Buffer, so the waiting data is in the queue and not in collector memory. Revisit the data-path figure.</span></span></label>
+      <label class="opt"><input type="radio" name="q1" value="c"><span>It is lost, because ClickHouse never received it and the collector has already discarded its copy of the batch.<span class="why">Data is written to the Buffer before the ingestor reads it, so an ingestor outage delays the data and does not delete it.</span></span></label>
+      <p class="feedback" role="status" aria-live="polite"></p>
+    </fieldset>
+    <fieldset class="q" data-answer="a">
+      <legend>Why does each signal have its own Buffer queue and ingestor?</legend>
+      <label class="opt"><input type="radio" name="q2" value="a"><span>A fault in one signal stays in its own queue, and the ingest runtime decodes one signal per manifest.<span class="why">Separating the queues contains problems such as a stalled consumer, and each ingestor is configured for the one decoder it needs.</span></span></label>
+      <label class="opt"><input type="radio" name="q2" value="b"><span>S3 allows only one manifest file per bucket, so each signal needs a bucket of its own to hold its queue.<span class="why">A bucket can hold any number of manifests; the separation is a design choice, so look at what it prevents.</span></span></label>
+      <label class="opt"><input type="radio" name="q2" value="c"><span>ClickHouse can accept only one signal at a time, so the three ingestors must take turns inserting their data.<span class="why">ClickHouse accepts all three at once; the limit is not in the database.</span></span></label>
+      <p class="feedback" role="status" aria-live="polite"></p>
+    </fieldset>
+    <fieldset class="q" data-answer="c">
+      <legend>Which statement about the collector's durability is accurate?</legend>
+      <label class="opt"><input type="radio" name="q3" value="a"><span>Everything it receives is durable immediately because the Buffer is on S3, so a crash loses nothing it has accepted.<span class="why">The Buffer write happens after batching, so data waiting in the collector is not yet in S3.</span></span></label>
+      <label class="opt"><input type="radio" name="q3" value="b"><span>It never loses data, because the applications resend whatever it drops until it confirms the batch was exported.<span class="why">Applications retry only for a limited time, and a retry can also create duplicates, so the first hop cannot be assumed lossless.</span></span></label>
+      <label class="opt"><input type="radio" name="q3" value="c"><span>It reports a batch exported only once the Buffer write is durable, but batches still in memory are lost if it crashes.<span class="why">Durability starts when the Buffer write succeeds, and anything before that point exists only in memory.</span></span></label>
+      <p class="feedback" role="status" aria-live="polite"></p>
+    </fieldset>
+    <p class="score" aria-live="polite"></p>
+    <p class="gate" hidden>All correct. Continue to module 3, the evidence it works.</p>
+  </section>
+
+  <nav class="pager" aria-label="Module navigation">
+    <a href="01-problem-and-outcome.html">Previous: The problem and the outcome</a>
+    <a class="next" href="03-evidence-it-works.html">Next: The evidence it works</a>
+  </nav>
+</main>
+<script src="../assets/mermaid.min.js"></script>
+<script src="../assets/mermaid-init.js"></script>
+<script src="../assets/quiz.js" defer></script>
+<script src="../assets/course.js" defer></script>
+<script src="../assets/sim-architecture.js" defer></script>
+<script src="../assets/sim-payload.js" defer></script>
+</body>
+</html>

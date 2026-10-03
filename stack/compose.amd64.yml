@@ -1,0 +1,10 @@
+# Run the project's own images as linux/amd64 (emulated on Apple Silicon) to prove the x86 builds work:
+#   COLLECTOR_IMAGE=localhost/sre-collector:amd64 INGESTOR_IMAGE=localhost/sre-ingestor:amd64 APP_IMAGE=localhost/sre-app:amd64 \
+#     docker compose -f compose.yml -f compose.amd64.yml --profile app up -d
+services:
+  otel-collector: { platform: linux/amd64 }
+  ingestor-logs: { platform: linux/amd64 }
+  ingestor-traces: { platform: linux/amd64 }
+  ingestor-metrics: { platform: linux/amd64 }
+  web: { platform: linux/amd64 }
+  backend: { platform: linux/amd64 }

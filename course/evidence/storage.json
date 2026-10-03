@@ -1,0 +1,26 @@
+[
+  {
+    "table": "otel_logs",
+    "n_rows": "24336",
+    "compressed": "789332",
+    "raw": "5877094"
+  },
+  {
+    "table": "otel_metrics_histogram",
+    "n_rows": "1798516",
+    "compressed": "15971966",
+    "raw": "794773116"
+  },
+  {
+    "table": "otel_metrics_sum",
+    "n_rows": "1827845",
+    "compressed": "14343055",
+    "raw": "405729619"
+  },
+  {
+    "table": "otel_traces",
+    "n_rows": "39431",
+    "compressed": "1545579",
+    "raw": "11150474"
+  }
+]

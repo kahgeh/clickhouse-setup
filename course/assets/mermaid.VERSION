@@ -1,0 +1,8 @@
+mermaid 11.16.1  (dist/mermaid.min.js, MIT, see mermaid.LICENSE)
+sha256   18327bef70d96fb505fe7287d9f6a7362ebf07ff6576ddfaffb1a06f3e1a2954
+tarball  sha512-TQsq6u22fAn3rek5VOubrhKPo1g5hwC3FXUN9hiyupTckcYiGuuKGkNQrKYwGJkXUxZdojwRG46gsSCFZMDp4g==
+source   npm registry, fetched with `npm pack mermaid@11.16.1 --ignore-scripts`; only dist/mermaid.min.js and LICENSE used
+built    GitHub Actions trusted publisher, mermaid-js/mermaid @ 7ecca0cd7f1658ef74f4e7e91f925724ef403bbf
+audited  supply-chain auditor approved 2026-09-30; do not use a version older than 11.16.1 (earlier versions carry advisories)
+fetched  2026-09-30
+To update: re-run the audit, fetch the new pinned version the same way, replace the three files and this record.

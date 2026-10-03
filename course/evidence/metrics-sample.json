@@ -1,0 +1,14 @@
+[
+  {
+    "MetricName": "app.requests",
+    "svc": "backend",
+    "points": "1798516",
+    "latest_max": 120
+  },
+  {
+    "MetricName": "http.server.active_requests",
+    "svc": "web",
+    "points": "29329",
+    "latest_max": 2
+  }
+]

@@ -1,0 +1,52 @@
+/* Theme: Blueprint. Condensed industrial headings, system body, blue-slate surfaces,
+   faint grid behind figures. The only file that sets colours and fonts. */
+:root {
+  --font-body: var(--font-system-ui);
+  --font-heading: var(--font-industrial);
+  --font-code: var(--font-mono);
+  --body-size: var(--font-size-1);
+  --measure: 72ch;
+  --heading-weight: var(--font-weight-6);
+  --heading-tracking: var(--font-letterspacing-1);
+  --card-radius: var(--radius-1);
+  --section-rule: none;
+
+  --surface-1: oklch(98.5% .006 230);
+  --surface-2: oklch(96% .01 230);
+  --surface-3: oklch(93.5% .014 230);
+  --grid-line: oklch(90% .02 230);
+  --figure-bg:
+    linear-gradient(var(--grid-line) 1px, transparent 1px) 0 0 / 20px 20px,
+    linear-gradient(90deg, var(--grid-line) 1px, transparent 1px) 0 0 / 20px 20px,
+    var(--surface-1);
+  --border: oklch(86% .02 230);
+  --border-strong: oklch(62% .04 230);
+  --text-1: oklch(24% .03 240);
+  --text-2: oklch(46% .03 240);
+  --accent: oklch(50% .1 200);
+  --accent-soft: oklch(93% .04 200);
+  --warn: oklch(60% .16 40);
+  --warn-soft: oklch(95.5% .03 45);
+  --warn-text: oklch(46% .14 35);
+  --good: oklch(48% .11 160);
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --surface-1: oklch(20% .025 245); --surface-2: oklch(24% .03 245); --surface-3: oklch(27.5% .032 245);
+    --grid-line: oklch(26% .03 245);
+    --border: oklch(35% .035 240); --border-strong: oklch(55% .05 230);
+    --text-1: oklch(93% .012 230); --text-2: oklch(75% .025 230);
+    --accent: oklch(80% .1 195); --accent-soft: oklch(32% .06 200);
+    --warn: oklch(75% .14 45); --warn-soft: oklch(28% .05 40); --warn-text: oklch(85% .1 50);
+    --good: oklch(80% .12 160);
+  }
+}
+:root[data-theme="dark"] {
+  --surface-1: oklch(20% .025 245); --surface-2: oklch(24% .03 245); --surface-3: oklch(27.5% .032 245);
+  --grid-line: oklch(26% .03 245);
+  --border: oklch(35% .035 240); --border-strong: oklch(55% .05 230);
+  --text-1: oklch(93% .012 230); --text-2: oklch(75% .025 230);
+  --accent: oklch(80% .1 195); --accent-soft: oklch(32% .06 200);
+  --warn: oklch(75% .14 45); --warn-soft: oklch(28% .05 40); --warn-text: oklch(85% .1 50);
+  --good: oklch(80% .12 160);
+}

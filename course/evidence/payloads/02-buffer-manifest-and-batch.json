@@ -1,0 +1,226 @@
+{
+  "entries": [
+    {
+      "batch_object": "otel/traces/data/01M40GJ97BZTQJYVZ2690BWJD4/0000000000000022",
+      "batch_object_bytes": 535,
+      "envelope": {
+        "encoding": 1,
+        "signal": "traces",
+        "signal_type": 3,
+        "version": 1
+      },
+      "metadata_bytes": "AQMBAA==",
+      "otlp_payload_bytes": 958,
+      "otlp_payload_decoded": {
+        "resourceSpans": [
+          {
+            "resource": {
+              "attributes": [
+                {
+                  "key": "service.version",
+                  "value": {
+                    "stringValue": "0.1.0"
+                  }
+                },
+                {
+                  "key": "service.name",
+                  "value": {
+                    "stringValue": "web"
+                  }
+                },
+                {
+                  "key": "deployment.environment.name",
+                  "value": {
+                    "stringValue": "local"
+                  }
+                }
+              ]
+            },
+            "scopeSpans": [
+              {
+                "scope": {
+                  "name": "app"
+                },
+                "spans": [
+                  {
+                    "attributes": [
+                      {
+                        "key": "rpc.system",
+                        "value": {
+                          "stringValue": "grpc"
+                        }
+                      },
+                      {
+                        "key": "rpc.service",
+                        "value": {
+                          "stringValue": "sre.backend.Backend"
+                        }
+                      },
+                      {
+                        "key": "rpc.method",
+                        "value": {
+                          "stringValue": "Process"
+                        }
+                      },
+                      {
+                        "key": "test_run_id",
+                        "value": {
+                          "stringValue": "payload-buffer"
+                        }
+                      }
+                    ],
+                    "endTimeUnixNano": "1791029862886723029",
+                    "flags": 257,
+                    "kind": 3,
+                    "name": "backend.Process",
+                    "parentSpanId": "760230a643ba946a",
+                    "spanId": "331774a15527b1f9",
+                    "startTimeUnixNano": "1791029862879877802",
+                    "status": {},
+                    "traceId": "8599d7c6e360400bafc2ae2997ab26f7"
+                  },
+                  {
+                    "attributes": [
+                      {
+                        "key": "http.request.method",
+                        "value": {
+                          "stringValue": "GET"
+                        }
+                      },
+                      {
+                        "key": "http.route",
+                        "value": {
+                          "stringValue": "/chain"
+                        }
+                      },
+                      {
+                        "key": "url.path",
+                        "value": {
+                          "stringValue": "/chain"
+                        }
+                      },
+                      {
+                        "key": "test_run_id",
+                        "value": {
+                          "stringValue": "payload-buffer"
+                        }
+                      },
+                      {
+                        "key": "http.response.status_code",
+                        "value": {
+                          "intValue": "200"
+                        }
+                      }
+                    ],
+                    "endTimeUnixNano": "1791029862886730946",
+                    "flags": 257,
+                    "kind": 2,
+                    "name": "GET /chain",
+                    "spanId": "760230a643ba946a",
+                    "startTimeUnixNano": "1791029862879864011",
+                    "status": {},
+                    "traceId": "8599d7c6e360400bafc2ae2997ab26f7"
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "resource": {
+              "attributes": [
+                {
+                  "key": "service.version",
+                  "value": {
+                    "stringValue": "0.1.0"
+                  }
+                },
+                {
+                  "key": "service.name",
+                  "value": {
+                    "stringValue": "backend"
+                  }
+                },
+                {
+                  "key": "deployment.environment.name",
+                  "value": {
+                    "stringValue": "local"
+                  }
+                }
+              ]
+            },
+            "scopeSpans": [
+              {
+                "scope": {
+                  "name": "app"
+                },
+                "spans": [
+                  {
+                    "attributes": [
+                      {
+                        "key": "test_run_id",
+                        "value": {
+                          "stringValue": "payload-buffer"
+                        }
+                      }
+                    ],
+                    "endTimeUnixNano": "1791029862886634071",
+                    "flags": 257,
+                    "kind": 1,
+                    "name": "backend.compute",
+                    "parentSpanId": "a7076e2387251e98",
+                    "spanId": "deaa0e85f7af312c",
+                    "startTimeUnixNano": "1791029862880061135",
+                    "status": {},
+                    "traceId": "8599d7c6e360400bafc2ae2997ab26f7"
+                  },
+                  {
+                    "attributes": [
+                      {
+                        "key": "rpc.system",
+                        "value": {
+                          "stringValue": "grpc"
+                        }
+                      },
+                      {
+                        "key": "rpc.service",
+                        "value": {
+                          "stringValue": "sre.backend.Backend"
+                        }
+                      },
+                      {
+                        "key": "rpc.method",
+                        "value": {
+                          "stringValue": "Process"
+                        }
+                      },
+                      {
+                        "key": "test_run_id",
+                        "value": {
+                          "stringValue": "payload-buffer"
+                        }
+                      }
+                    ],
+                    "endTimeUnixNano": "1791029862886641738",
+                    "flags": 769,
+                    "kind": 2,
+                    "name": "backend.Process",
+                    "parentSpanId": "331774a15527b1f9",
+                    "spanId": "a7076e2387251e98",
+                    "startTimeUnixNano": "1791029862880053093",
+                    "status": {},
+                    "traceId": "8599d7c6e360400bafc2ae2997ab26f7"
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      },
+      "payloads_in_batch": 1
+    }
+  ],
+  "manifest": "otel/traces/manifest",
+  "manifest_bytes": 120,
+  "queued_entries": 1,
+  "note": "Manifest entry containing trace 8599d7c6e360400bafc2ae2997ab26f7; the ingestor for traces was paused so it was still queued"
+}

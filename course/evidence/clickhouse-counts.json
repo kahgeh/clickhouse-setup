@@ -1,0 +1,6 @@
+{
+  "otel_traces": "39431",
+  "otel_logs": "24336",
+  "otel_metrics_sum": "1827845",
+  "otel_metrics_histogram": "1798516"
+}

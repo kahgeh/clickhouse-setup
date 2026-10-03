@@ -1,0 +1,293 @@
+{
+  "region": "ap-southeast-2",
+  "location": "Asia Pacific (Sydney)",
+  "fetched_at": "2026-10-03T11:21:54Z",
+  "s3": {
+    "_meta": {
+      "publicationDate": "2026-09-28T23:04:16Z",
+      "source": "https://pricing.us-east-1.amazonaws.com/offers/v1.0/aws/AmazonS3/current/ap-southeast-2/index.json"
+    },
+    "requests_standard": {
+      "S3-API-Tier2": {
+        "sku": "ZE67FX933AEQ43H2",
+        "usageType": "APS2-Requests-Tier2",
+        "usd": 4.4e-07,
+        "unit": "Requests",
+        "description": "$0.0044 per 10,000 GET and all other requests",
+        "beginRange": "0",
+        "endRange": "Inf"
+      },
+      "S3-API-Tier1": {
+        "sku": "2NWK2WN5TE9A8P2Q",
+        "usageType": "APS2-Requests-Annotation-Tier1",
+        "usd": 5.5e-06,
+        "unit": "Requests",
+        "description": "$0.0055 per 1,000 Tier1 Annotation Requests",
+        "beginRange": "0",
+        "endRange": "Inf"
+      }
+    },
+    "storage_standard_gb_month_tiers": {
+      "sku": "5QVJMK36NJC9G6DC",
+      "tiers": [
+        {
+          "usd": 0.025,
+          "unit": "GB-Mo",
+          "description": "$0.025 per GB - first 50 TB / month of storage used",
+          "beginRange": "0",
+          "endRange": "51200"
+        },
+        {
+          "usd": 0.024,
+          "unit": "GB-Mo",
+          "description": "$0.024 per GB - next 450 TB / month of storage used",
+          "beginRange": "51200",
+          "endRange": "512000"
+        },
+        {
+          "usd": 0.023,
+          "unit": "GB-Mo",
+          "description": "$0.023 per GB - storage used / month over 500 TB",
+          "beginRange": "512000",
+          "endRange": "Inf"
+        }
+      ]
+    }
+  },
+  "msk": {
+    "_meta": {
+      "publicationDate": "2026-09-11T12:44:56Z",
+      "source": "https://pricing.us-east-1.amazonaws.com/offers/v1.0/aws/AmazonMSK/current/ap-southeast-2/index.json"
+    },
+    "storage_gb_month": {
+      "APS2-Kafka.Storage.Tiered": {
+        "sku": "TYQ47EFYVSUPV6YH",
+        "usd": 0.0652,
+        "unit": "GB-Mo",
+        "description": "$0.0652 per GB-Mo for tiered storage in Asia Pacific (Sydney)",
+        "beginRange": "0",
+        "endRange": "Inf"
+      },
+      "APS2-Kafka.Storage.GP2": {
+        "sku": "GR4ZXY2VW65PH64A",
+        "usd": 0.12,
+        "unit": "GB-Mo",
+        "description": "$0.12 per GB-Mo for storage in Asia Pacific (Sydney)",
+        "beginRange": "0",
+        "endRange": "Inf"
+      }
+    },
+    "broker_hour": {
+      "kafka.m7g.xlarge": {
+        "sku": "XUFSBGFCGPVKQ4VA",
+        "usageType": "APS2-Kafka.m7g.xlarge",
+        "usd": 0.51,
+        "unit": "hours",
+        "description": "$0.51 per broker hour for Kafka.m7g.xlarge in Asia Pacific (Sydney)",
+        "beginRange": "0",
+        "endRange": "Inf"
+      },
+      "kafka.m7g.2xlarge": {
+        "sku": "GVBRSCMFBKBCU585",
+        "usageType": "APS2-Kafka.m7g.2xlarge",
+        "usd": 1.02,
+        "unit": "hours",
+        "description": "$1.02 per broker hour for Kafka.m7g.2xlarge in Asia Pacific (Sydney)",
+        "beginRange": "0",
+        "endRange": "Inf"
+      },
+      "kafka.m7g.large": {
+        "sku": "5VBDECSDT3E7PN7V",
+        "usageType": "APS2-Kafka.m7g.large",
+        "usd": 0.255,
+        "unit": "hours",
+        "description": "$0.255 per broker hour for Kafka.m7g.large in Asia Pacific (Sydney)",
+        "beginRange": "0",
+        "endRange": "Inf"
+      },
+      "kafka.m5.large": {
+        "sku": "2W42Y8VASEKXS7D3",
+        "usageType": "APS2-Kafka.m5.large",
+        "usd": 0.263,
+        "unit": "hours",
+        "description": "$0.263 per broker hour for Kafka.m5.large in Asia Pacific (Sydney)",
+        "beginRange": "0",
+        "endRange": "Inf"
+      },
+      "kafka.m5.2xlarge": {
+        "sku": "B6NY8PFT443RNPW2",
+        "usageType": "APS2-Kafka.m5.2xlarge",
+        "usd": 1.05,
+        "unit": "hours",
+        "description": "$1.05 per broker hour for Kafka.m5.2xlarge in Asia Pacific (Sydney)",
+        "beginRange": "0",
+        "endRange": "Inf"
+      },
+      "kafka.m5.xlarge": {
+        "sku": "WSE5UFQ5MNA84DMX",
+        "usageType": "APS2-Kafka.m5.xlarge",
+        "usd": 0.525,
+        "unit": "hours",
+        "description": "$0.525 per broker hour for Kafka.m5.xlarge in Asia Pacific (Sydney)",
+        "beginRange": "0",
+        "endRange": "Inf"
+      }
+    }
+  },
+  "ec2": {
+    "_meta": {
+      "publicationDate": "2026-09-25T17:45:21Z",
+      "source": "https://pricing.us-east-1.amazonaws.com/offers/v1.0/aws/AmazonEC2/current/ap-southeast-2/index.json"
+    },
+    "ebs_gb_month": {
+      "gp3": {
+        "sku": "QR74UAP3E9WUYT9B",
+        "usd": 0.096,
+        "unit": "GB-Mo",
+        "description": "$0.096 per GB-month of General Purpose (gp3) provisioned storage - Asia Pacific (Sydney)",
+        "beginRange": "0",
+        "endRange": "Inf"
+      },
+      "sc1": {
+        "sku": "R8N7XNGRYWTMBF9N",
+        "usd": 0.018,
+        "unit": "GB-Mo",
+        "description": "$0.018 per GB-month of Cold HDD (sc1) provisioned storage  - Asia Pacific (Sydney)",
+        "beginRange": "0",
+        "endRange": "Inf"
+      },
+      "gp2": {
+        "sku": "5ES53GWNC5G54Q44",
+        "usd": 0.12,
+        "unit": "GB-Mo",
+        "description": "$0.12 per GB-month of General Purpose SSD (gp2) provisioned storage  - Asia Pacific (Sydney)",
+        "beginRange": "0",
+        "endRange": "Inf"
+      },
+      "st1": {
+        "sku": "FHQF8UD4V5RWYMZQ",
+        "usd": 0.054,
+        "unit": "GB-Mo",
+        "description": "$0.054 per GB-month of Throughput Optimized HDD (st1) provisioned storage  - Asia Pacific (Sydney)",
+        "beginRange": "0",
+        "endRange": "Inf"
+      }
+    },
+    "instance_hour": {
+      "c6g.xlarge": {
+        "sku": "FXVD3D6V9MZ9PEQT",
+        "usd": 0.1776,
+        "unit": "Hrs",
+        "description": "$0.1776 per On Demand Linux c6g.xlarge Instance Hour",
+        "beginRange": "0",
+        "endRange": "Inf"
+      },
+      "r6g.xlarge": {
+        "sku": "JH7F28SQNWECHB8T",
+        "usd": 0.2416,
+        "unit": "Hrs",
+        "description": "$0.2416 per On Demand Linux r6g.xlarge Instance Hour",
+        "beginRange": "0",
+        "endRange": "Inf"
+      },
+      "m6g.xlarge": {
+        "sku": "M7YAJ328MTMEVBNJ",
+        "usd": 0.192,
+        "unit": "Hrs",
+        "description": "$0.192 per On Demand Linux m6g.xlarge Instance Hour",
+        "beginRange": "0",
+        "endRange": "Inf"
+      },
+      "r5.2xlarge": {
+        "sku": "U4CRVE4RVE3SWDJ9",
+        "usd": 0.604,
+        "unit": "Hrs",
+        "description": "$0.604 per On Demand Linux r5.2xlarge Instance Hour",
+        "beginRange": "0",
+        "endRange": "Inf"
+      },
+      "c6g.large": {
+        "sku": "BTNXVSU626YHPK4X",
+        "usd": 0.0888,
+        "unit": "Hrs",
+        "description": "$0.0888 per On Demand Linux c6g.large Instance Hour",
+        "beginRange": "0",
+        "endRange": "Inf"
+      },
+      "m6g.2xlarge": {
+        "sku": "XRSGKTHRZBCESZ3N",
+        "usd": 0.384,
+        "unit": "Hrs",
+        "description": "$0.384 per On Demand Linux m6g.2xlarge Instance Hour",
+        "beginRange": "0",
+        "endRange": "Inf"
+      },
+      "m6g.large": {
+        "sku": "JQJQJV6DQSXNYP4F",
+        "usd": 0.096,
+        "unit": "Hrs",
+        "description": "$0.096 per On Demand Linux m6g.large Instance Hour",
+        "beginRange": "0",
+        "endRange": "Inf"
+      },
+      "r5.xlarge": {
+        "sku": "25WHS436YREMJA46",
+        "usd": 0.302,
+        "unit": "Hrs",
+        "description": "$0.302 per On Demand Linux r5.xlarge Instance Hour",
+        "beginRange": "0",
+        "endRange": "Inf"
+      },
+      "c6g.2xlarge": {
+        "sku": "HMRE2JZ7EQE2ZMAC",
+        "usd": 0.3552,
+        "unit": "Hrs",
+        "description": "$0.3552 per On Demand Linux c6g.2xlarge Instance Hour",
+        "beginRange": "0",
+        "endRange": "Inf"
+      },
+      "m5.large": {
+        "sku": "H293A95RN6FSQQHF",
+        "usd": 0.12,
+        "unit": "Hrs",
+        "description": "$0.12 per On Demand Linux m5.large Instance Hour",
+        "beginRange": "0",
+        "endRange": "Inf"
+      },
+      "r6g.large": {
+        "sku": "JS6XUVA6GCZH3NBE",
+        "usd": 0.1208,
+        "unit": "Hrs",
+        "description": "$0.1208 per On Demand Linux r6g.large Instance Hour",
+        "beginRange": "0",
+        "endRange": "Inf"
+      },
+      "r6g.2xlarge": {
+        "sku": "NDWPDDCMJKQECWZ4",
+        "usd": 0.4832,
+        "unit": "Hrs",
+        "description": "$0.4832 per On Demand Linux r6g.2xlarge Instance Hour",
+        "beginRange": "0",
+        "endRange": "Inf"
+      },
+      "m5.xlarge": {
+        "sku": "YTSUFB5KUMQURKW5",
+        "usd": 0.24,
+        "unit": "Hrs",
+        "description": "$0.24 per On Demand Linux m5.xlarge Instance Hour",
+        "beginRange": "0",
+        "endRange": "Inf"
+      }
+    },
+    "ebs_gp3_extra": {
+      "APS2-EBS:VolumeP-IOPS.gp3": {
+        "sku": "69EGQ83GFYZBFNWU",
+        "usd": 0.006,
+        "unit": "IOPS-Mo",
+        "description": "$0.006 per provisioned IOPS-month of gp3 - Asia Pacific (Sydney)",
+        "beginRange": "0",
+        "endRange": "Inf"
+      }
+    }
+  }
+}

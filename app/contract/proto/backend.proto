@@ -1,0 +1,27 @@
+syntax = "proto3";
+
+package sre.backend;
+
+service Backend {
+  rpc Process(ProcessRequest) returns (ProcessReply);
+  rpc Checkout(CheckoutRequest) returns (CheckoutReply);
+  rpc Flush(Empty) returns (Empty);
+}
+
+message ProcessRequest {
+  bool fail = 1;
+}
+
+message ProcessReply {
+  string message = 1;
+}
+
+message CheckoutRequest {
+  string cart_id = 1;
+}
+
+message CheckoutReply {
+  string order_id = 1;
+}
+
+message Empty {}

@@ -1,0 +1,37 @@
+# Binaries
+*.exe
+*.exe~
+*.dll
+*.so
+*.dylib
+
+# Test binary
+*.test
+
+# Output of go coverage
+*.out
+
+# Go workspace
+go.work
+go.work.sum
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# Build output
+bin/
+otel-collector/_build/
+
+# Local bench harness binary from `go build -o bench ./cmd/bench`.
+# Ignored so a built artifact in the worktree doesn't make every
+# bench metadata.json report dirty: true.
+/bench
+
+# Rust build output
+**/target/
+
+# OS
+.DS_Store

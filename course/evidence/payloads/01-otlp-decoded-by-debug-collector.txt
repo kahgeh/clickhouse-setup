@@ -1,0 +1,141 @@
+# One GET /chain request. Trace id 7efb7182e2d5812470f0c6070539a903
+# Decoded by a throwaway collector's debug exporter (detailed). The wire format is protobuf over gRPC.
+
+2026-10-03T12:17:24.465Z	info	Traces	{"resource": {"service.instance.id": "f7b76f42-55fd-4905-80ee-373c63904ecc", "service.name": "otelcol-opendata", "service.version": "0.0.1"}, "otelcol.component.id": "debug", "otelcol.component.kind": "exporter", "otelcol.signal": "traces", "resource spans": 1, "spans": 2}
+2026-10-03T12:17:24.465Z	info	ResourceSpans #0
+Resource SchemaURL: 
+Resource attributes:
+     -> service.name: Str(web)
+     -> service.version: Str(0.1.0)
+     -> deployment.environment.name: Str(local)
+ScopeSpans #0
+ScopeSpans SchemaURL: 
+InstrumentationScope app 
+Span #0
+    Trace ID       : 7efb7182e2d5812470f0c6070539a903
+    Parent ID      : 3b1b3b4681376a98
+    ID             : 9b8da61ca7705004
+    Name           : backend.Process
+    Kind           : Client
+    Start time     : 2026-10-03 12:17:24.423263965 +0000 UTC
+    End time       : 2026-10-03 12:17:24.464658866 +0000 UTC
+    Status code    : Unset
+    Status message : 
+    DroppedAttributesCount: 0
+    DroppedEventsCount: 0
+    DroppedLinksCount: 0
+Attributes:
+     -> rpc.system: Str(grpc)
+     -> rpc.service: Str(sre.backend.Backend)
+     -> rpc.method: Str(Process)
+     -> test_run_id: Str(payload-otlp)
+Span #1
+    Trace ID       : 7efb7182e2d5812470f0c6070539a903
+    Parent ID      : 
+    ID             : 3b1b3b4681376a98
+    Name           : GET /chain
+    Kind           : Server
+    Start time     : 2026-10-03 12:17:24.42324259 +0000 UTC
+    End time       : 2026-10-03 12:17:24.464672366 +0000 UTC
+    Status code    : Unset
+    Status message : 
+    DroppedAttributesCount: 0
+    DroppedEventsCount: 0
+    DroppedLinksCount: 0
+Attributes:
+     -> http.request.method: Str(GET)
+     -> http.route: Str(/chain)
+     -> url.path: Str(/chain)
+     -> test_run_id: Str(payload-otlp)
+     -> http.response.status_code: Int(200)
+	{"resource": {"service.instance.id": "f7b76f42-55fd-4905-80ee-373c63904ecc", "service.name": "otelcol-opendata", "service.version": "0.0.1"}, "otelcol.component.id": "debug", "otelcol.component.kind": "exporter", "otelcol.signal": "traces"}
+2026-10-03T12:17:24.466Z	info	Logs	{"resource": {"service.instance.id": "f7b76f42-55fd-4905-80ee-373c63904ecc", "service.name": "otelcol-opendata", "service.version": "0.0.1"}, "otelcol.component.id": "debug", "otelcol.component.kind": "exporter", "otelcol.signal": "logs", "resource logs": 1, "log records": 1}
+2026-10-03T12:17:24.467Z	info	ResourceLog #0
+Resource SchemaURL: 
+Resource attributes:
+     -> service.name: Str(web)
+     -> service.version: Str(0.1.0)
+     -> deployment.environment.name: Str(local)
+ScopeLogs #0
+ScopeLogs SchemaURL: 
+InstrumentationScope web 
+LogRecord #0
+ObservedTimestamp: 2026-10-03 12:17:24.464667824 +0000 UTC
+Timestamp: 2026-10-03 12:17:24.464667824 +0000 UTC
+SeverityText: INFO
+SeverityNumber: Info(9)
+EventName: event web/src/lib.rs:243
+Body: Str(chain handled)
+Attributes:
+     -> test_run_id: Str(payload-otlp)
+Trace ID: 7efb7182e2d5812470f0c6070539a903
+Span ID: 3b1b3b4681376a98
+Flags: 1
+	{"resource": {"service.instance.id": "f7b76f42-55fd-4905-80ee-373c63904ecc", "service.name": "otelcol-opendata", "service.version": "0.0.1"}, "otelcol.component.id": "debug", "otelcol.component.kind": "exporter", "otelcol.signal": "logs"}
+2026-10-03T12:17:24.468Z	info	Traces	{"resource": {"service.instance.id": "f7b76f42-55fd-4905-80ee-373c63904ecc", "service.name": "otelcol-opendata", "service.version": "0.0.1"}, "otelcol.component.id": "debug", "otelcol.component.kind": "exporter", "otelcol.signal": "traces", "resource spans": 1, "spans": 2}
+2026-10-03T12:17:24.468Z	info	ResourceSpans #0
+Resource SchemaURL: 
+Resource attributes:
+     -> deployment.environment.name: Str(local)
+     -> service.version: Str(0.1.0)
+     -> service.name: Str(backend)
+ScopeSpans #0
+ScopeSpans SchemaURL: 
+InstrumentationScope app 
+Span #0
+    Trace ID       : 7efb7182e2d5812470f0c6070539a903
+    Parent ID      : 791b8fa7cd1aef19
+    ID             : 583bddacb0eb83df
+    Name           : backend.compute
+    Kind           : Internal
+    Start time     : 2026-10-03 12:17:24.424000796 +0000 UTC
+    End time       : 2026-10-03 12:17:24.430161942 +0000 UTC
+    Status code    : Unset
+    Status message : 
+    DroppedAttributesCount: 0
+    DroppedEventsCount: 0
+    DroppedLinksCount: 0
+Attributes:
+     -> test_run_id: Str(payload-otlp)
+Span #1
+    Trace ID       : 7efb7182e2d5812470f0c6070539a903
+    Parent ID      : 9b8da61ca7705004
+    ID             : 791b8fa7cd1aef19
+    Name           : backend.Process
+    Kind           : Server
+    Start time     : 2026-10-03 12:17:24.423986463 +0000 UTC
+    End time       : 2026-10-03 12:17:24.430171775 +0000 UTC
+    Status code    : Unset
+    Status message : 
+    DroppedAttributesCount: 0
+    DroppedEventsCount: 0
+    DroppedLinksCount: 0
+Attributes:
+     -> rpc.system: Str(grpc)
+     -> rpc.service: Str(sre.backend.Backend)
+     -> rpc.method: Str(Process)
+     -> test_run_id: Str(payload-otlp)
+	{"resource": {"service.instance.id": "f7b76f42-55fd-4905-80ee-373c63904ecc", "service.name": "otelcol-opendata", "service.version": "0.0.1"}, "otelcol.component.id": "debug", "otelcol.component.kind": "exporter", "otelcol.signal": "traces"}
+2026-10-03T12:17:24.469Z	info	Logs	{"resource": {"service.instance.id": "f7b76f42-55fd-4905-80ee-373c63904ecc", "service.name": "otelcol-opendata", "service.version": "0.0.1"}, "otelcol.component.id": "debug", "otelcol.component.kind": "exporter", "otelcol.signal": "logs", "resource logs": 1, "log records": 1}
+2026-10-03T12:17:24.469Z	info	ResourceLog #0
+Resource SchemaURL: 
+Resource attributes:
+     -> deployment.environment.name: Str(local)
+     -> service.version: Str(0.1.0)
+     -> service.name: Str(backend)
+ScopeLogs #0
+ScopeLogs SchemaURL: 
+InstrumentationScope backend 
+LogRecord #0
+ObservedTimestamp: 2026-10-03 12:17:24.430168525 +0000 UTC
+Timestamp: 2026-10-03 12:17:24.430168525 +0000 UTC
+SeverityText: INFO
+SeverityNumber: Info(9)
+EventName: event backend/src/lib.rs:118
+Body: Str(backend processed)
+Attributes:
+     -> test_run_id: Str(payload-otlp)
+Trace ID: 7efb7182e2d5812470f0c6070539a903
+Span ID: 791b8fa7cd1aef19
+Flags: 1
+	{"resource": {"service.instance.id": "f7b76f42-55fd-4905-80ee-373c63904ecc", "service.name": "otelcol-opendata", "service.version": "0.0.1"}, "otelcol.component.id": "debug", "otelcol.component.kind": "exporter", "otelcol.signal": "logs"}

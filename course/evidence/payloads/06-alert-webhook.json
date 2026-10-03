@@ -1,0 +1,100 @@
+[
+  {
+    "title": "\ud83d\udea8 Alert: 5xx errors above 4 per minute (dashboard tile)",
+    "state": "ALERT",
+    "body": "\n60 exceeds 4\nTime Range (UTC): [Oct 3 9:56:00 AM - Oct 3 9:57:00 AM)\nMore than 4 web requests failed with 5xx in the last minute",
+    "link": "http://localhost:8080/dashboards/6ac0b6a26b542a060966d707?from=1791020940000&granularity=1+minute&to=1791021840000&highlightedTileId=6ac0b6a26b542a060966d6fc",
+    "received_at": 1791021420.0727031
+  },
+  {
+    "title": "\ud83d\udea8 Alert: ERROR logs above 4 per minute (saved search)",
+    "state": "ALERT",
+    "body": "\n70 lines found, which exceeds the threshold of 4 lines\nTime Range (UTC): [Oct 3 9:56:00 AM - Oct 3 9:57:00 AM)\nMore than 4 ERROR log lines in the last minute\n```\n\"2026-10-03T09:56:20.366616178Z\",\"web\",\"simulated error\",\"d7f9e44315c87817a8d668a12361eac7\"\n\"2026-10-03T09:56:20.366613386Z\",\"web\",\"simulated error\",\"5c0fe7900896ad79eb1407891208c446\"\n\"2026-10-03T09:56:20.366597553Z\",\"web\",\"simulated error\",\"3d5d17a7c197acf986907fa685a29d93\"\n\"2026-10-03T09:56:20.366509428Z\",\"web\",\"simulated error\",\"65f95f93be9f27c525e94745a106119f\"\n\"2026-10-03T09:56:20.366504595Z\",\"web\",\"simulated error\",\"06930a376671b91847fd323356331ad1\"\n\n```",
+    "link": "http://localhost:8080/search/6ac0b6a26b542a060966d723?from=1791021360000&to=1791021420000&isLive=false",
+    "received_at": 1791021420.077494
+  },
+  {
+    "title": "\u2705 Alert: ERROR logs above 4 per minute (saved search)",
+    "state": "OK",
+    "body": "The alert has been resolved.\nTime Range (UTC): [Oct 3 9:57:00 AM - Oct 3 9:58:00 AM)\nMore than 4 ERROR log lines in the last minute",
+    "link": "http://localhost:8080/search/6ac0b6a26b542a060966d723?from=1791021420000&to=1791021480000&isLive=false",
+    "received_at": 1791021480.0668085
+  },
+  {
+    "title": "\u2705 Alert: 5xx errors above 4 per minute (dashboard tile)",
+    "state": "OK",
+    "body": "The alert has been resolved.\nTime Range (UTC): [Oct 3 9:57:00 AM - Oct 3 9:58:00 AM)\nMore than 4 web requests failed with 5xx in the last minute",
+    "link": "http://localhost:8080/dashboards/6ac0b6a26b542a060966d707?from=1791021000000&granularity=1+minute&to=1791021900000&highlightedTileId=6ac0b6a26b542a060966d6fc",
+    "received_at": 1791021480.067072
+  },
+  {
+    "title": "\ud83d\udea8 Alert: 5xx errors above 4 per minute (dashboard tile)",
+    "state": "ALERT",
+    "body": "\n35 exceeds 4\nTime Range (UTC): [Oct 3 10:00:00 AM - Oct 3 10:01:00 AM)\nMore than 4 web requests failed with 5xx in the last minute",
+    "link": "http://localhost:8080/dashboards/6ac0b6a26b542a060966d707?from=1791021180000&granularity=1+minute&to=1791022080000&highlightedTileId=6ac0b6a26b542a060966d6fc",
+    "received_at": 1791021660.116194
+  },
+  {
+    "title": "\ud83d\udea8 Alert: ERROR logs above 4 per minute (saved search)",
+    "state": "ALERT",
+    "body": "\n45 lines found, which exceeds the threshold of 4 lines\nTime Range (UTC): [Oct 3 10:00:00 AM - Oct 3 10:01:00 AM)\nMore than 4 ERROR log lines in the last minute\n```\n\"2026-10-03T10:00:05.250434579Z\",\"web\",\"simulated error\",\"37e8c621ed738af4579aee0c912368c1\"\n\"2026-10-03T10:00:05.045937321Z\",\"web\",\"simulated error\",\"4372e421df2202b7570e89a44a126121\"\n\"2026-10-03T10:00:04.843357058Z\",\"web\",\"simulated error\",\"0f1345ae4b9485e5de989f2a39218a13\"\n\"2026-10-03T10:00:04.640316754Z\",\"web\",\"simulated error\",\"92f42a65ce46c9e1f8201127c4d21808\"\n\"2026-10-03T10:00:04.437637657Z\",\"web\",\"simulated error\",\"a04d631b731b56424b7ac34a250c4aa1\"\n\n```",
+    "link": "http://localhost:8080/search/6ac0b6a26b542a060966d723?from=1791021600000&to=1791021660000&isLive=false",
+    "received_at": 1791021660.121665
+  },
+  {
+    "title": "\u2705 Alert: ERROR logs above 4 per minute (saved search)",
+    "state": "OK",
+    "body": "The alert has been resolved.\nTime Range (UTC): [Oct 3 10:01:00 AM - Oct 3 10:02:00 AM)\nMore than 4 ERROR log lines in the last minute",
+    "link": "http://localhost:8080/search/6ac0b6a26b542a060966d723?from=1791021660000&to=1791021720000&isLive=false",
+    "received_at": 1791021720.0830712
+  },
+  {
+    "title": "\u2705 Alert: 5xx errors above 4 per minute (dashboard tile)",
+    "state": "OK",
+    "body": "The alert has been resolved.\nTime Range (UTC): [Oct 3 10:01:00 AM - Oct 3 10:02:00 AM)\nMore than 4 web requests failed with 5xx in the last minute",
+    "link": "http://localhost:8080/dashboards/6ac0b6a26b542a060966d707?from=1791021240000&granularity=1+minute&to=1791022140000&highlightedTileId=6ac0b6a26b542a060966d6fc",
+    "received_at": 1791021720.083367
+  },
+  {
+    "title": "\ud83d\udea8 Alert: 5xx errors above 4 per minute (dashboard tile)",
+    "state": "ALERT",
+    "body": "\n44 exceeds 4\nTime Range (UTC): [Oct 3 11:42:00 AM - Oct 3 11:43:00 AM)\nMore than 4 web requests failed with 5xx in the last minute",
+    "link": "http://localhost:8080/dashboards/6ac0b6a26b542a060966d707?from=1791027300000&granularity=1+minute&to=1791028200000&highlightedTileId=6ac0b6a26b542a060966d6fc",
+    "received_at": 1791027780.0711908
+  },
+  {
+    "title": "\ud83d\udea8 Alert: ERROR logs above 4 per minute (saved search)",
+    "state": "ALERT",
+    "body": "\n94 lines found, which exceeds the threshold of 4 lines\nTime Range (UTC): [Oct 3 11:42:00 AM - Oct 3 11:43:00 AM)\nMore than 4 ERROR log lines in the last minute\n```\n\"2026-10-03T11:42:59.296674980Z\",\"web\",\"chain-fail: backend call failed\",\"32187501acca856f8fba9742c7fa0ab1\"\n\"2026-10-03T11:42:59.296620480Z\",\"backend\",\"backend failure\",\"32187501acca856f8fba9742c7fa0ab1\"\n\"2026-10-03T11:42:59.290891960Z\",\"web\",\"simulated error\",\"79aa3c25d9c171d09b5b336c1d473b65\"\n\"2026-10-03T11:42:59.089575293Z\",\"web\",\"chain-fail: backend call failed\",\"ded69aa8a1768d44492cfe06a219550f\"\n\"2026-10-03T11:42:59.089472918Z\",\"backend\",\"backend failure\",\"ded69aa8a1768d44492cfe06a219550f\"\n\n```",
+    "link": "http://localhost:8080/search/6ac0b6a26b542a060966d723?from=1791027720000&to=1791027780000&isLive=false",
+    "received_at": 1791027780.0823596
+  },
+  {
+    "title": "\ud83d\udea8 Alert: 5xx errors above 4 per minute (dashboard tile)",
+    "state": "ALERT",
+    "body": "\n18 exceeds 4\nTime Range (UTC): [Oct 3 11:43:00 AM - Oct 3 11:44:00 AM)\nMore than 4 web requests failed with 5xx in the last minute",
+    "link": "http://localhost:8080/dashboards/6ac0b6a26b542a060966d707?from=1791027360000&granularity=1+minute&to=1791028260000&highlightedTileId=6ac0b6a26b542a060966d6fc",
+    "received_at": 1791027840.093457
+  },
+  {
+    "title": "\ud83d\udea8 Alert: ERROR logs above 4 per minute (saved search)",
+    "state": "ALERT",
+    "body": "\n22 lines found, which exceeds the threshold of 4 lines\nTime Range (UTC): [Oct 3 11:43:00 AM - Oct 3 11:44:00 AM)\nMore than 4 ERROR log lines in the last minute\n```\n\"2026-10-03T11:43:02.861763957Z\",\"web\",\"simulated error\",\"0c791c082dd4327d64361d5064ccafe6\"\n\"2026-10-03T11:43:02.651214366Z\",\"web\",\"simulated error\",\"53055bce27314cb53ca81a541ccb0100\"\n\"2026-10-03T11:43:02.439082781Z\",\"web\",\"simulated error\",\"6cad659ec95bc908cfd6d2f11a6764f3\"\n\"2026-10-03T11:43:02.227651402Z\",\"web\",\"simulated error\",\"36d995e437142d147b702e740146c617\"\n\"2026-10-03T11:43:02.016215272Z\",\"web\",\"simulated error\",\"a3a1c32df7f553a5875f123403760423\"\n\n```",
+    "link": "http://localhost:8080/search/6ac0b6a26b542a060966d723?from=1791027780000&to=1791027840000&isLive=false",
+    "received_at": 1791027840.0986717
+  },
+  {
+    "title": "\u2705 Alert: ERROR logs above 4 per minute (saved search)",
+    "state": "OK",
+    "body": "The alert has been resolved.\nTime Range (UTC): [Oct 3 11:44:00 AM - Oct 3 11:45:00 AM)\nMore than 4 ERROR log lines in the last minute",
+    "link": "http://localhost:8080/search/6ac0b6a26b542a060966d723?from=1791027840000&to=1791027900000&isLive=false",
+    "received_at": 1791027900.050291
+  },
+  {
+    "title": "\u2705 Alert: 5xx errors above 4 per minute (dashboard tile)",
+    "state": "OK",
+    "body": "The alert has been resolved.\nTime Range (UTC): [Oct 3 11:44:00 AM - Oct 3 11:45:00 AM)\nMore than 4 web requests failed with 5xx in the last minute",
+    "link": "http://localhost:8080/dashboards/6ac0b6a26b542a060966d707?from=1791027420000&granularity=1+minute&to=1791028320000&highlightedTileId=6ac0b6a26b542a060966d6fc",
+    "received_at": 1791027900.0557954
+  }
+]

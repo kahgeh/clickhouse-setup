@@ -1,0 +1,118 @@
+// compat-producer writes test batches to an S3-compatible store using the Go
+// buffer, then exits. The Rust compat-consumer reads and verifies them.
+package main
+
+import (
+	"context"
+	"fmt"
+	"log"
+	"os"
+	"strings"
+	"time"
+
+	awscfg "github.com/aws/aws-sdk-go-v2/config"
+	"github.com/aws/aws-sdk-go-v2/credentials"
+	"github.com/aws/aws-sdk-go-v2/service/s3"
+
+	"github.com/opendata-oss/opendata-go/buffer"
+	"github.com/opendata-oss/opendata-go/objstore"
+)
+
+func main() {
+	endpoint := envOrDefault("S3_ENDPOINT", "http://localhost:9000")
+	bucket := envOrDefault("S3_BUCKET", "compat-test")
+	accessKey := envOrDefault("AWS_ACCESS_KEY_ID", "test")
+	secretKey := envOrDefault("AWS_SECRET_ACCESS_KEY", "testtesttest")
+	region := envOrDefault("AWS_REGION", "us-east-1")
+
+	ctx := context.Background()
+
+	cfg, err := awscfg.LoadDefaultConfig(ctx,
+		awscfg.WithRegion(region),
+		awscfg.WithCredentialsProvider(credentials.NewStaticCredentialsProvider(accessKey, secretKey, "")),
+	)
+	if err != nil {
+		log.Fatalf("failed to load aws config: %v", err)
+	}
+
+	client := s3.NewFromConfig(cfg, func(o *s3.Options) {
+		o.BaseEndpoint = &endpoint
+		o.UsePathStyle = true
+	})
+
+	if _, err := client.CreateBucket(ctx, &s3.CreateBucketInput{Bucket: &bucket}); err != nil && !bucketAlreadyExists(err) {
+		log.Fatalf("create bucket failed: %v", err)
+	}
+
+	store := objstore.NewS3(client, bucket)
+
+	config := buffer.ProducerConfig{
+		DataPathPrefix:    "ingest",
+		ManifestPath:      "ingest/manifest",
+		FlushInterval:     24 * time.Hour,
+		FlushSizeBytes:    64 * 1024 * 1024,
+		MaxBufferedInputs: 1000,
+		BatchCompression:  compressionFromEnv(),
+	}
+
+	p := buffer.NewProducer(store, config)
+
+	// Write 3 separate batches with known data.
+	batches := []struct {
+		entries  [][]byte
+		metadata []byte
+	}{
+		{
+			entries:  [][]byte{[]byte("hello"), []byte("world")},
+			metadata: []byte(`{"batch":1}`),
+		},
+		{
+			entries:  [][]byte{[]byte("foo"), []byte("bar"), []byte("baz")},
+			metadata: []byte(`{"batch":2}`),
+		},
+		{
+			entries:  [][]byte{[]byte("single-entry")},
+			metadata: []byte(`{"batch":3}`),
+		},
+	}
+
+	for i, b := range batches {
+		if _, err := p.Append(b.entries, b.metadata); err != nil {
+			log.Fatalf("append batch %d failed: %v", i+1, err)
+		}
+		if err := p.Flush(ctx); err != nil {
+			log.Fatalf("flush batch %d failed: %v", i+1, err)
+		}
+		fmt.Printf("produced batch %d (%d entries)\n", i+1, len(b.entries))
+	}
+
+	if err := p.Close(ctx); err != nil {
+		log.Fatalf("close failed: %v", err)
+	}
+
+	fmt.Println("producer: done, 3 batches written")
+}
+
+func envOrDefault(key, fallback string) string {
+	if v := os.Getenv(key); v != "" {
+		return v
+	}
+	return fallback
+}
+
+func compressionFromEnv() buffer.CompressionType {
+	switch os.Getenv("BATCH_COMPRESSION") {
+	case "zstd":
+		return buffer.CompressionZstd
+	default:
+		return buffer.CompressionNone
+	}
+}
+
+func bucketAlreadyExists(err error) bool {
+	if err == nil {
+		return false
+	}
+	msg := err.Error()
+	return strings.Contains(msg, "BucketAlreadyOwnedByYou") || strings.Contains(msg, "BucketAlreadyExists")
+}

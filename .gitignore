@@ -1,0 +1,15 @@
+# secrets / local state
+stack/hyperdx/state.json
+# verification artefacts
+stack/verify/out/
+stack/verify/bin/
+# build output
+**/target/
+**/_build/
+
+# cost model: downloaded AWS price lists (~480 MB)
+cost/.cache/
+**/__pycache__/
+
+# built on demand by the course payload capture (see course/README.md)
+course/tools/bin/

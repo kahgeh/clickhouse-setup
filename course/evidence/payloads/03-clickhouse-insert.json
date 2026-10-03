@@ -1,0 +1,9 @@
+{
+  "note": "The statement the ingestor sent (the rows travel in the HTTP body as JSONEachRow, one JSON object per line) and the settings it carried",
+  "event_time": "2026-10-03 12:17:47",
+  "user": "ingestor",
+  "query": "INSERT INTO otel.otel_traces FORMAT JSONEachRow\n",
+  "written_rows": "4",
+  "dedup_token": "otel/traces/manifest:otel.otel_traces:173-173:1:843259ec4b04eff0:0",
+  "async_insert": ""
+}

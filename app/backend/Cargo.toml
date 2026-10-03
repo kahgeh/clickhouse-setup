@@ -1,0 +1,26 @@
+[package]
+name = "backend"
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+publish.workspace = true
+
+[lib]
+name = "backend"
+
+[[bin]]
+name = "backend"
+path = "src/main.rs"
+
+[dependencies]
+contract.workspace = true
+telemetry.workspace = true
+tonic.workspace = true
+tonic-health.workspace = true
+tokio.workspace = true
+tokio-stream.workspace = true
+tracing.workspace = true
+trace_macros.workspace = true
+tracing-opentelemetry.workspace = true
+opentelemetry.workspace = true
+anyhow.workspace = true

@@ -1,0 +1,32 @@
+##### attempt 1
+
+=== ingestor-crash  (run chaos-ingestor-crash-214644)
+   injecting fault ...
+   settled after 2s
+   PASS: 17/17 checks; failed=[]
+   info: replayed inserts dropped as duplicates by ClickHouse during this scenario: 1
+
+== chaos summary
+   PASS  ingestor-crash
+
+##### attempt 2
+
+=== ingestor-crash  (run chaos-ingestor-crash-214704)
+   injecting fault ...
+   settled after 2s
+   PASS: 17/17 checks; failed=[]
+   info: replayed inserts dropped as duplicates by ClickHouse during this scenario: 0
+
+== chaos summary
+   PASS  ingestor-crash
+
+##### attempt 3
+
+=== ingestor-crash  (run chaos-ingestor-crash-214724)
+   injecting fault ...
+   settled after 2s
+   PASS: 17/17 checks; failed=[]
+   info: replayed inserts dropped as duplicates by ClickHouse during this scenario: 0
+
+== chaos summary
+   PASS  ingestor-crash

@@ -1,0 +1,461 @@
+{
+  "run_id": "course-evidence-002020",
+  "passed": 32,
+  "failed": 0,
+  "e2e_visible_after_s": 1.0329680442810059,
+  "checks": [
+    {
+      "id": "G1",
+      "desc": "ground truth: requests / spans / logs / 5xx / availability match the contract",
+      "expected": [
+        225,
+        815,
+        305,
+        35,
+        0.844444444
+      ],
+      "actual": [
+        225,
+        815,
+        305,
+        35,
+        0.844444444
+      ],
+      "ok": true
+    },
+    {
+      "id": "A1",
+      "desc": "logs: count per (service, severity) equals ground truth",
+      "expected": {
+        "web | INFO": 190,
+        "web | ERROR": 35,
+        "backend | INFO": 70,
+        "backend | ERROR": 10
+      },
+      "actual": {
+        "web | INFO": 190,
+        "backend | INFO": 70,
+        "web | ERROR": 35,
+        "backend | ERROR": 10
+      },
+      "ok": true
+    },
+    {
+      "id": "A2",
+      "desc": "spans: count per (service, kind, status, name) equals contract",
+      "expected": {
+        "web | Server | Unset | GET /ok": 100,
+        "web | Server | Unset | GET /slow": 20,
+        "web | Server | Error | GET /error": 20,
+        "web | Server | Error | GET /exception": 5,
+        "web | Server | Unset | GET /chain": 50,
+        "web | Client | Unset | backend.Process": 50,
+        "backend | Server | Unset | backend.Process": 50,
+        "backend | Internal | Unset | backend.compute": 50,
+        "web | Server | Error | GET /chain-fail": 10,
+        "web | Client | Error | backend.Process": 10,
+        "backend | Server | Error | backend.Process": 10,
+        "web | Server | Unset | GET /checkout": 20,
+        "web | Client | Unset | backend.Checkout": 20,
+        "backend | Server | Unset | backend.Checkout": 20,
+        "web | Internal | Unset | place_order": 20,
+        "web | Internal | Unset | validate_cart": 20,
+        "web | Internal | Unset | load_cart": 20,
+        "web | Internal | Unset | price_items": 20,
+        "web | Internal | Unset | unit_price": 20,
+        "web | Internal | Unset | tax": 20,
+        "web | Internal | Unset | apply_discount": 20,
+        "web | Internal | Unset | reserve_inventory": 20,
+        "web | Internal | Unset | confirm_order": 20,
+        "backend | Internal | Unset | lookup_stock": 20,
+        "backend | Internal | Unset | read_shelf": 20,
+        "backend | Internal | Unset | check_fraud": 20,
+        "backend | Internal | Unset | load_history": 20,
+        "backend | Internal | Unset | score": 20,
+        "backend | Internal | Unset | authorise_payment": 20,
+        "backend | Internal | Unset | call_acquirer": 20,
+        "backend | Internal | Unset | write_ledger": 20,
+        "backend | Internal | Unset | debit": 20,
+        "backend | Internal | Unset | credit": 20
+      },
+      "actual": {
+        "backend | Internal | Unset | lookup_stock": 20,
+        "web | Server | Unset | GET /slow": 20,
+        "web | Internal | Unset | tax": 20,
+        "web | Internal | Unset | validate_cart": 20,
+        "backend | Internal | Unset | authorise_payment": 20,
+        "backend | Server | Unset | backend.Process": 50,
+        "web | Client | Error | backend.Process": 10,
+        "backend | Server | Error | backend.Process": 10,
+        "web | Internal | Unset | unit_price": 20,
+        "backend | Internal | Unset | read_shelf": 20,
+        "backend | Server | Unset | backend.Checkout": 20,
+        "web | Internal | Unset | reserve_inventory": 20,
+        "backend | Internal | Unset | backend.compute": 50,
+        "web | Client | Unset | backend.Process": 50,
+        "backend | Internal | Unset | score": 20,
+        "backend | Internal | Unset | load_history": 20,
+        "backend | Internal | Unset | write_ledger": 20,
+        "web | Server | Unset | GET /chain": 50,
+        "web | Client | Unset | backend.Checkout": 20,
+        "web | Server | Error | GET /exception": 5,
+        "web | Internal | Unset | confirm_order": 20,
+        "web | Internal | Unset | apply_discount": 20,
+        "backend | Internal | Unset | credit": 20,
+        "web | Internal | Unset | load_cart": 20,
+        "web | Internal | Unset | place_order": 20,
+        "backend | Internal | Unset | call_acquirer": 20,
+        "backend | Internal | Unset | debit": 20,
+        "web | Server | Error | GET /error": 20,
+        "backend | Internal | Unset | check_fraud": 20,
+        "web | Server | Unset | GET /ok": 100,
+        "web | Internal | Unset | price_items": 20,
+        "web | Server | Unset | GET /checkout": 20,
+        "web | Server | Error | GET /chain-fail": 10
+      },
+      "ok": true
+    },
+    {
+      "id": "A3a",
+      "desc": "metrics: web app.requests per (route, outcome) equals request mix",
+      "expected": {
+        "/ok | ok": 100,
+        "/slow | ok": 20,
+        "/chain | ok": 50,
+        "/checkout | ok": 20,
+        "/error | error": 20,
+        "/exception | error": 5,
+        "/chain-fail | error": 10
+      },
+      "actual": {
+        "/chain | ok": 50,
+        "/error | error": 20,
+        "/chain-fail | error": 10,
+        "/ok | ok": 100,
+        "/slow | ok": 20,
+        "/checkout | ok": 20,
+        "/exception | error": 5
+      },
+      "ok": true
+    },
+    {
+      "id": "A3b",
+      "desc": "metrics: backend app.requests per (rpc, outcome) equals chain / chain-fail / checkout counts",
+      "expected": {
+        "Process | ok": 50,
+        "Process | error": 10,
+        "Checkout | ok": 20
+      },
+      "actual": {
+        "Process | error": 10,
+        "Checkout | ok": 20,
+        "Process | ok": 50
+      },
+      "ok": true
+    },
+    {
+      "id": "A3c",
+      "desc": "metrics: http.server.request.duration histogram count per route equals request mix",
+      "expected": {
+        "/ok": 100,
+        "/slow": 20,
+        "/error": 20,
+        "/exception": 5,
+        "/chain": 50,
+        "/chain-fail": 10,
+        "/checkout": 20
+      },
+      "actual": {
+        "/error": 20,
+        "/ok": 100,
+        "/chain": 50,
+        "/slow": 20,
+        "/checkout": 20,
+        "/chain-fail": 10,
+        "/exception": 5
+      },
+      "ok": true
+    },
+    {
+      "id": "A3d",
+      "desc": "metrics: /slow histogram sum reflects the injected 200ms delay",
+      "expected": "4.00s <= sum < 12.00s",
+      "actual": 4.041477378000001,
+      "ok": true
+    },
+    {
+      "id": "A3e",
+      "desc": "metrics: in-flight requests gauge settles at 0 on every route",
+      "expected": 0,
+      "actual": 0,
+      "ok": true
+    },
+    {
+      "id": "A4t",
+      "desc": "otel_traces: no duplicate rows (raw == FINAL == unique provenance keys)",
+      "expected": [
+        815,
+        815,
+        815
+      ],
+      "actual": [
+        815,
+        815,
+        815
+      ],
+      "ok": true
+    },
+    {
+      "id": "A4l",
+      "desc": "otel_logs: no duplicate rows (raw == FINAL == unique provenance keys)",
+      "expected": [
+        305,
+        305,
+        305
+      ],
+      "actual": [
+        305,
+        305,
+        305
+      ],
+      "ok": true
+    },
+    {
+      "id": "A4m",
+      "desc": "otel_metrics_sum: no duplicate metric points (raw == FINAL == unique provenance keys)",
+      "expected": [
+        40,
+        40,
+        40
+      ],
+      "actual": [
+        40,
+        40,
+        40
+      ],
+      "ok": true
+    },
+    {
+      "id": "A4m",
+      "desc": "otel_metrics_histogram: no duplicate metric points (raw == FINAL == unique provenance keys)",
+      "expected": [
+        40,
+        40,
+        40
+      ],
+      "actual": [
+        40,
+        40,
+        40
+      ],
+      "ok": true
+    },
+    {
+      "id": "E16",
+      "desc": "end-to-end latency (event -> queryable in ClickHouse), every row: p99 <= 15s; measured {'logs': {'rows': 305, 'p50_s': 0.619, 'p99_s': 1.362, 'max_s': 1.369}, 'spans': {'rows': 815, 'p50_s': 1.203, 'p99_s': 2.826, 'max_s': 2.861}}",
+      "expected": "p99 <= 15.0s",
+      "actual": {
+        "logs": 1.362,
+        "spans": 2.826
+      },
+      "ok": true
+    },
+    {
+      "id": "B5",
+      "desc": "/chain: all 50 traces have the exact web->client->backend span chain (no errors)",
+      "expected": [],
+      "actual": [],
+      "ok": true
+    },
+    {
+      "id": "B6a",
+      "desc": "/chain: log correlation, each trace id has exactly the web+backend logs",
+      "expected": [],
+      "actual": [],
+      "ok": true
+    },
+    {
+      "id": "B7",
+      "desc": "/chain-fail: all 10 traces have the exact web->client->backend span chain with Error propagated on every hop",
+      "expected": [],
+      "actual": [],
+      "ok": true
+    },
+    {
+      "id": "B6b",
+      "desc": "/chain-fail: log correlation, each trace id has exactly the web+backend logs",
+      "expected": [],
+      "actual": [],
+      "ok": true
+    },
+    {
+      "id": "B9",
+      "desc": "/checkout: all 20 traces have exactly the 22-span call tree, each span under its expected parent, one root, no errors",
+      "expected": [],
+      "actual": [],
+      "ok": true
+    },
+    {
+      "id": "B8",
+      "desc": "every x-trace-id returned to the client exists in ClickHouse",
+      "expected": 0,
+      "actual": 0,
+      "ok": true
+    },
+    {
+      "id": "D12",
+      "desc": "HyperDX search: Traces and Logs sources return exactly this run's spans and logs",
+      "expected": [
+        815,
+        305
+      ],
+      "actual": [
+        815,
+        305
+      ],
+      "ok": true
+    },
+    {
+      "id": "D12b",
+      "desc": "HyperDX Metrics source: the app.requests counter series has data points for this run",
+      "expected": "> 0 data points",
+      "actual": 10.0,
+      "ok": true
+    },
+    {
+      "id": "D13a",
+      "desc": "HyperDX chart: request count (web server spans) equals requests sent",
+      "expected": 225,
+      "actual": 225,
+      "ok": true
+    },
+    {
+      "id": "D13b",
+      "desc": "HyperDX chart: availability (non-5xx / total) equals ground truth",
+      "expected": 0.844444,
+      "actual": 0.844444,
+      "ok": true
+    },
+    {
+      "id": "D13c",
+      "desc": "HyperDX chart: /slow p50 latency is consistent with the injected 200ms",
+      "expected": "200ms <= p50 < 400ms",
+      "actual": "201.8ms",
+      "ok": true
+    },
+    {
+      "id": "D13d",
+      "desc": "HyperDX chart grouped by route: request counts per route equal the request mix",
+      "expected": {
+        "GET /ok": 100,
+        "GET /slow": 20,
+        "GET /error": 20,
+        "GET /exception": 5,
+        "GET /chain": 50,
+        "GET /chain-fail": 10,
+        "GET /checkout": 20
+      },
+      "actual": {
+        "GET /chain-fail": 10,
+        "GET /slow": 20,
+        "GET /exception": 5,
+        "GET /chain": 50,
+        "GET /error": 20,
+        "GET /checkout": 20,
+        "GET /ok": 100
+      },
+      "ok": true
+    },
+    {
+      "id": "D13e",
+      "desc": "HyperDX chart grouped by route: error counts per route equal the 5xx mix",
+      "expected": {
+        "GET /error": 20,
+        "GET /exception": 5,
+        "GET /chain-fail": 10
+      },
+      "actual": {
+        "GET /chain-fail": 10,
+        "GET /exception": 5,
+        "GET /error": 20
+      },
+      "ok": true
+    },
+    {
+      "id": "D16",
+      "desc": "dashboards exist: 'Availability & Latency' (13 tiles incl. availability, latency, error lists) and 'Runlog' (4 tiles, 2 filters)",
+      "expected": {
+        "availability_tiles": 13,
+        "runlog_tiles": 4,
+        "runlog_filters": 2
+      },
+      "actual": {
+        "availability_tiles": 13,
+        "runlog_tiles": 4,
+        "runlog_filters": 2
+      },
+      "ok": true
+    },
+    {
+      "id": "D14a",
+      "desc": "error list (failed web spans) = exactly the /error, /exception, /chain-fail requests",
+      "expected": {
+        "GET /error": 20,
+        "GET /exception": 5,
+        "GET /chain-fail": 10
+      },
+      "actual": {
+        "GET /error": 20,
+        "GET /chain-fail": 10,
+        "GET /exception": 5
+      },
+      "ok": true
+    },
+    {
+      "id": "D14b",
+      "desc": "error list (ERROR logs) equals expected error logs",
+      "expected": 45,
+      "actual": 45,
+      "ok": true
+    },
+    {
+      "id": "D14c",
+      "desc": "saved searches 'Error list: failed spans' / 'error logs' return every failed span and ERROR log of the run",
+      "expected": [
+        55,
+        45
+      ],
+      "actual": [
+        55,
+        45
+      ],
+      "ok": true
+    },
+    {
+      "id": "D15",
+      "desc": "runlog saved searches for this run return all of its logs and spans",
+      "expected": {
+        "logs": 305,
+        "spans": 815
+      },
+      "actual": {
+        "logs": 305,
+        "spans": 815
+      },
+      "ok": true
+    },
+    {
+      "id": "D15b",
+      "desc": "a trace id resolves to its spans and correlated logs in HyperDX",
+      "expected": [
+        true,
+        true
+      ],
+      "actual": [
+        true,
+        true
+      ],
+      "ok": true
+    }
+  ]
+}

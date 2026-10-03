@@ -1,0 +1,2 @@
+$ otelcol-opendata validate  # upstream image ghcr.io/opendata-oss/otel-collector:v0.4.0, pipeline: traces -> opendata exporter
+Error: failed to build pipelines: failed to create "opendata" exporter for data type "traces": telemetry type is not supported

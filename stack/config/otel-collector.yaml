@@ -1,0 +1,62 @@
+# OTLP in -> OpenData Buffer (object storage) out. One pipeline and one Buffer
+# manifest per signal so each can be scaled, replayed and debugged independently.
+# All environment-specific values come from env vars (local: RustFS; AWS: real S3,
+# with S3_ENDPOINT left empty and credentials from the IAM role).
+receivers:
+  otlp:
+    protocols:
+      grpc:
+        endpoint: 0.0.0.0:4317
+      http:
+        endpoint: 0.0.0.0:4318
+
+processors:
+  batch:
+    timeout: 200ms
+    send_batch_size: 1024
+    send_batch_max_size: 4096
+
+exporters:
+  opendata/logs: &opendata
+    object_store:
+      type: s3
+      bucket: ${env:BUFFER_BUCKET}
+      region: ${env:AWS_REGION}
+      endpoint: ${env:S3_ENDPOINT:-}
+    data_path_prefix: otel/logs/data
+    manifest_path: otel/logs/manifest
+    flush_interval: 100ms
+    flush_size_bytes: 4194304
+    compression: zstd
+    encode_concurrency: 2
+    upload_concurrency: 2
+    max_inflight_batches: 16
+    max_inflight_bytes: 33554432
+    manifest_append_batch_size: 4
+    timeout: 30s
+  opendata/traces:
+    <<: *opendata
+    data_path_prefix: otel/traces/data
+    manifest_path: otel/traces/manifest
+  opendata/metrics:
+    <<: *opendata
+    data_path_prefix: otel/metrics/data
+    manifest_path: otel/metrics/manifest
+
+service:
+  telemetry:
+    logs:
+      level: info
+  pipelines:
+    logs:
+      receivers: [otlp]
+      processors: [batch]
+      exporters: [opendata/logs]
+    traces:
+      receivers: [otlp]
+      processors: [batch]
+      exporters: [opendata/traces]
+    metrics:
+      receivers: [otlp]
+      processors: [batch]
+      exporters: [opendata/metrics]

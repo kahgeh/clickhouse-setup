@@ -1,0 +1,88 @@
+{
+  "baseline_30d": {
+    "Logs Insights scanning": 14811.599999999999,
+    "Log ingest": 952.8,
+    "Prometheus ingest (AMP)": 703.1999999999999,
+    "Prometheus query (AMP)": 615.6,
+    "CloudWatch custom metrics": 562.8,
+    "Grafana seats": 291,
+    "CloudWatch GetMetricData": 208.79999999999998,
+    "Everything else (storage, export, alarms, dashboards, tracing, streaming)": 355.2
+  },
+  "current_total": 18501.0,
+  "cases": [
+    {
+      "case": "A. Current AWS setup (Sep rate, 30-day)",
+      "infra_low": 18501.0,
+      "infra_high": 18501.0,
+      "people_low": 0,
+      "people_high": 0,
+      "total_low": 18501.0,
+      "total_high": 18501.0,
+      "saving_vs_current_low": 0.0,
+      "saving_vs_current_high": 0.0,
+      "note": "from the bill; Aug actual was $9,765"
+    },
+    {
+      "case": "B. AWS with query discipline (50% less scanned)",
+      "infra_low": 11095.2,
+      "infra_high": 11095.2,
+      "people_low": 1200.0,
+      "people_high": 3000.0,
+      "total_low": 12295.2,
+      "total_high": 14095.2,
+      "saving_vs_current_low": 4405.799999999999,
+      "saving_vs_current_high": 6205.799999999999,
+      "note": "ASSUMED scan reduction; some engineer time"
+    },
+    {
+      "case": "B. AWS with query discipline (80% less scanned)",
+      "infra_low": 6651.720000000001,
+      "infra_high": 6651.720000000001,
+      "people_low": 1200.0,
+      "people_high": 3000.0,
+      "total_low": 7851.720000000001,
+      "total_high": 9651.720000000001,
+      "saving_vs_current_low": 8849.279999999999,
+      "saving_vs_current_high": 10649.279999999999,
+      "note": "ASSUMED scan reduction; some engineer time"
+    },
+    {
+      "case": "C. This platform, self-managed",
+      "infra_low": 642.283848,
+      "infra_high": 1370.36772,
+      "people_low": 6000.0,
+      "people_high": 12000.0,
+      "total_low": 6642.283848,
+      "total_high": 13370.36772,
+      "saving_vs_current_low": 5130.63228,
+      "saving_vs_current_high": 11858.716152,
+      "note": "AWS on-demand; ClickHouse + HyperDX run by you"
+    },
+    {
+      "case": "   (C stress: 2 x high infra)",
+      "infra_low": 2740.73544,
+      "infra_high": 2740.73544,
+      "people_low": 6000.0,
+      "people_high": 12000.0,
+      "total_low": 8740.73544,
+      "total_high": 14740.73544,
+      "saving_vs_current_low": 3760.2645599999996,
+      "saving_vs_current_high": 9760.26456,
+      "note": "headroom, traces, mis-sizing"
+    },
+    {
+      "case": "D. This platform, ClickHouse Cloud",
+      "infra_low": 1802.5690857142858,
+      "infra_high": 6040.143485714286,
+      "people_low": 3000.0,
+      "people_high": 6000.0,
+      "total_low": 4802.569085714285,
+      "total_high": 12040.143485714285,
+      "saving_vs_current_low": 6460.856514285715,
+      "saving_vs_current_high": 13698.430914285715,
+      "note": "Cloud rates UNVERIFIED (Enterprise page); Buffer kept"
+    }
+  ],
+  "fte_month": 12000
+}

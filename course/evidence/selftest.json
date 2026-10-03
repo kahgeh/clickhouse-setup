@@ -1,0 +1,110 @@
+{
+  "tag": "001407",
+  "baseline_failed": [],
+  "mutations": [
+    {
+      "mutation": "delete one /ok span",
+      "must_fail": [
+        "A2",
+        "D12",
+        "D13a"
+      ],
+      "failed": [
+        "A2",
+        "B8",
+        "D12",
+        "D13a",
+        "D13b",
+        "D13d",
+        "D15"
+      ],
+      "detected": true
+    },
+    {
+      "mutation": "flip one /ok span to Error",
+      "must_fail": [
+        "A2",
+        "D13b",
+        "D14a"
+      ],
+      "failed": [
+        "A2",
+        "D13b",
+        "D13e",
+        "D14a",
+        "D14c"
+      ],
+      "detected": true
+    },
+    {
+      "mutation": "duplicate one span row (new provenance-independent copy)",
+      "must_fail": [
+        "A4t"
+      ],
+      "failed": [
+        "A2",
+        "A4t",
+        "D12",
+        "D13a",
+        "D13b",
+        "D13d",
+        "D15"
+      ],
+      "detected": true
+    },
+    {
+      "mutation": "detach a backend span from its parent",
+      "must_fail": [
+        "B5"
+      ],
+      "failed": [
+        "B5"
+      ],
+      "detected": true
+    },
+    {
+      "mutation": "move one /checkout function span under the wrong parent",
+      "must_fail": [
+        "B9"
+      ],
+      "failed": [
+        "B9"
+      ],
+      "detected": true
+    },
+    {
+      "mutation": "delete one log record",
+      "must_fail": [
+        "A1",
+        "D12"
+      ],
+      "failed": [
+        "A1",
+        "B6a",
+        "D12",
+        "D15"
+      ],
+      "detected": true
+    },
+    {
+      "mutation": "inflate web app.requests{/ok} counter values",
+      "must_fail": [
+        "A3a"
+      ],
+      "failed": [
+        "A3a"
+      ],
+      "detected": true
+    },
+    {
+      "mutation": "corrupt the /slow latency histogram count",
+      "must_fail": [
+        "A3c"
+      ],
+      "failed": [
+        "A3c"
+      ],
+      "detected": true
+    }
+  ]
+}
