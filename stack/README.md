@@ -27,7 +27,7 @@ docker build -t sre-app:dev                       ../app
 docker build -f ../collector/otel-collector/Dockerfile -t sre-collector:dev ../collector
 docker build -f ../ingest/connectors/clickhouse-ingestor/Dockerfile -t sre-ingestor:dev ../ingest
 
-# 2. start the stack and the test app
+# 2. start the stack and the test app, then provision HyperDX (from the repository root: `make setup`)
 docker compose --profile app up -d
 python3 hyperdx/provision.py            # connection, sources, dashboards, saved searches (idempotent)
 
@@ -48,6 +48,30 @@ python3 verify/alerts.py                # HyperDX alerts: quiet, boundary, fire,
 | ClickHouse | http://localhost:8123 (`ingestor`/`ingestor`, dev only); read-only `hyperdx_ro` for HyperDX |
 | Ingestor metrics | :9091 logs, :9092 traces, :9093 metrics (`/metrics`) |
 | Test app | web :8081, backend :50051 |
+
+## Lifecycle and reset
+
+From the repository root (`Makefile`; destructive targets ask first, `YES=1` skips the question):
+
+```sh
+make help          # list the targets
+make start         # start the containers
+make stop          # stop them; containers, volumes and data stay
+make setup         # start + provision HyperDX: from nothing to ready
+make teardown      # remove containers, network, volumes and hyperdx/state.json (IMAGES=1: images too)
+make status        # containers (also stopped ones) and the row count of every table
+make reset-data    # empty the Buffer bucket, the ClickHouse tables (logs, traces, metrics) and the webhook sink list, restart the pipeline
+make reset-setup   # wipe HyperDX's store (Mongo) and re-create dashboards, alerts and saved searches
+make reset         # both, in that order
+make provision     # re-create the HyperDX content only; idempotent, deletes nothing
+```
+
+`setup` expects the three images to exist already (see "Run it"). `DOCKER=podman` switches the container tool.
+
+The data reset stops the test app, collector, ingestors and webhook sink first, so nothing writes while the bucket and tables are emptied,
+and starts them again afterwards. The app's cumulative metric counters restart from zero, and the webhook sink's list of received alerts is emptied.
+`reset-data` also works on a stack stopped with `make stop`: it starts the services it needs and waits for them.
+The setup reset also removes the HyperDX user, so the next login uses the dev credentials that `provision.py` creates again.
 
 ## What "working" means
 
