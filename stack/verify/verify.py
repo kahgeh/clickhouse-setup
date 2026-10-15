@@ -31,6 +31,7 @@ CH_AUTH = "Basic " + base64.b64encode(
     f"{os.environ.get('CH_USER', 'ingestor')}:{os.environ.get('CH_PASSWORD', 'ingestor')}".encode()
 ).decode()
 APP_IMAGE = os.environ.get("APP_IMAGE", "localhost/sre-app:dev")
+DOCKER = os.environ.get("DOCKER", "docker")
 NETWORK = os.environ.get("COMPOSE_NETWORK", "obs_default")
 WEB_URL_IN_NET = os.environ.get("WEB_URL_IN_NET", "http://web:8081")
 E2E_THRESHOLD_S = float(os.environ.get("E2E_THRESHOLD_S", "15"))
@@ -222,7 +223,7 @@ def expected_route_outcomes(c):
 
 def run_loadgen(run_id, counts, slow_ms, outdir):
     os.makedirs(outdir, exist_ok=True)
-    cmd = ["docker", "run", "--rm", "--network", NETWORK, "-v", f"{outdir}:/out", APP_IMAGE,
+    cmd = [DOCKER, "run", "--rm", "--network", NETWORK, "-v", f"{outdir}:/out", APP_IMAGE,
            "loadgen", "--base-url", WEB_URL_IN_NET, "--run-id", run_id, "--counts", counts,
            "--slow-ms", str(slow_ms), "--concurrency", "4", "--out", "/out/ground_truth.json"]
     print("$", " ".join(cmd))

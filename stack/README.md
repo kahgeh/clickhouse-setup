@@ -66,7 +66,7 @@ make reset         # both, in that order
 make provision     # re-create the HyperDX content only; idempotent, deletes nothing
 ```
 
-`setup` expects the three images to exist already (see "Run it"). `DOCKER=podman` switches the container tool.
+`setup` expects the three images to exist already (see "Run it"). `DOCKER=podman` switches the container tool, for `make` and for `verify/verify.py`.
 
 The data reset stops the test app, collector, ingestors and webhook sink first, so nothing writes while the bucket and tables are emptied,
 and starts them again afterwards. The app's cumulative metric counters restart from zero, and the webhook sink's list of received alerts is emptied.
