@@ -30,6 +30,7 @@ services:
   # Must support S3 conditional writes: Buffer's manifest relies on them.
   s3:
     image: docker.io/rustfs/rustfs:1.0.1
+    restart: unless-stopped
     command: ["/data"]
     environment:
       RUSTFS_ACCESS_KEY: ${S3_ACCESS_KEY:-localadmin}
@@ -63,6 +64,7 @@ services:
 
   clickhouse:
     image: docker.io/clickhouse/clickhouse-server:24.10.1.2812
+    restart: unless-stopped
     ulimits: { nofile: { soft: 262144, hard: 262144 } }
     environment:
       CLICKHOUSE_USER: ${CH_INGEST_USER:-ingestor}
@@ -114,10 +116,12 @@ services:
 
   mongo:
     image: docker.io/library/mongo:7.0
+    restart: unless-stopped
     volumes: ["mongo-data:/data/db"]
 
   hyperdx:
     image: docker.hyperdx.io/hyperdx/hyperdx:2.40.0
+    restart: unless-stopped
     depends_on: [mongo, clickhouse]
     environment:
       MONGO_URI: mongodb://mongo:27017/hyperdx
@@ -127,6 +131,7 @@ services:
   # Records alert webhooks from HyperDX so alert delivery can be verified (verify/alerts.py).
   webhook-sink:
     image: docker.io/library/python:3.13-slim
+    restart: unless-stopped
     command: ["python", "/sink.py"]
     volumes: ["./webhook-sink/sink.py:/sink.py:ro"]
     ports: ["8089:8089"]
@@ -134,6 +139,7 @@ services:
   # ---- test application (docker compose --profile app up -d) ----
   backend:
     image: ${APP_IMAGE:-localhost/sre-app:dev}
+    restart: unless-stopped
     profiles: ["app"]
     command: ["backend"]
     environment: &app-env
@@ -145,6 +151,7 @@ services:
 
   web:
     image: ${APP_IMAGE:-localhost/sre-app:dev}
+    restart: unless-stopped
     profiles: ["app"]
     command: ["web"]
     environment:
