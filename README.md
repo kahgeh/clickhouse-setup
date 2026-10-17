@@ -61,11 +61,13 @@ From the repository root, `make help` lists them. Destructive targets ask first,
 
 These delete local data. They are for the learning stack only.
 
-The containers restart on their own unless stopped with `make stop` (`s3-init` is a one-shot job and does not).
-After the Podman machine reboots they come back only if its `podman-restart.service` is enabled:
-`podman machine ssh systemctl --user enable podman-restart.service` (enabled on this Mac as of 2026-10-17).
+The containers restart on their own unless stopped (for example with `make stop`; `s3-init` is a one-shot job and does not restart).
+They also start again with the Podman machine (`restart: always`), if the machine's `podman-restart.service` is enabled:
+`podman machine ssh systemctl --user enable podman-restart.service` (enabled on this Mac on 2026-10-17).
+After a reboot the stack comes back even if it was stopped with `make stop` before.
 The data lives in the named volumes `obs_clickhouse-data`, `obs_mongo-data` and `obs_s3-data` and survives restarts;
-only `make teardown`, `make reset` / `reset-data` / `reset-setup` or removing the Podman machine deletes it.
+it is deleted only by `make teardown`, `make reset` / `reset-data` / `reset-setup`, `podman volume rm` / `podman volume prune`,
+or removing the Podman machine.
 
 The proof suite in `stack/verify/`:
 
