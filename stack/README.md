@@ -73,6 +73,12 @@ and starts them again afterwards. The app's cumulative metric counters restart f
 `reset-data` also works on a stack stopped with `make stop`: it starts the services it needs and waits for them.
 The setup reset also removes the HyperDX user, so the next login uses the dev credentials that `provision.py` creates again.
 
+The containers restart on their own unless stopped with `make stop` (`s3-init` is a one-shot job and does not).
+After the Podman machine reboots they come back only if its `podman-restart.service` is enabled:
+`podman machine ssh systemctl --user enable podman-restart.service` (enabled on this Mac as of 2026-10-17).
+The data lives in the named volumes `obs_clickhouse-data`, `obs_mongo-data` and `obs_s3-data` and survives restarts;
+only `make teardown`, `make reset` / `reset-data` / `reset-setup` or removing the Podman machine deletes it.
+
 ## What "working" means
 
 `verify/verify.py` sends a deterministic request mix and compares what arrived with the
