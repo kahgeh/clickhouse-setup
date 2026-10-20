@@ -410,7 +410,18 @@ def main():
 
     conn_id = v2.upsert("connections", "clickhouse", {
         "name": "clickhouse", "host": CH_HOST, "username": CH_USER, "password": CH_PASSWORD})
-    src = {k: v2.upsert("sources", b["name"], b) for k, b in source_bodies(conn_id).items()}
+    bodies = source_bodies(conn_id)
+    src = {k: v2.upsert("sources", b["name"], b) for k, b in bodies.items()}
+    # Link the sources to each other once all three have ids, so HyperDX can jump from a
+    # metric or a span to its logs (without it: "No log source is associated with the
+    # selected metric source").
+    links = {
+        "logs": {"traceSourceId": src["traces"], "metricSourceId": src["metrics"]},
+        "traces": {"logSourceId": src["logs"], "metricSourceId": src["metrics"]},
+        "metrics": {"logSourceId": src["logs"]},  # HyperDX keeps no trace link on a metric source
+    }
+    for k, b in bodies.items():
+        v2.upsert("sources", b["name"], {**b, **links[k]})
 
     dashboards = {}
     for body in (availability_dashboard(src), runlog_dashboard(src)):
